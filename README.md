@@ -34,3 +34,11 @@ CREATE TRIGGER on_auth_user_created
 -- Grant permission for the trigger to write to profiles
 GRANT INSERT ON public.profiles TO supabase_auth_admin;
 GRANT USAGE ON SCHEMA public TO supabase_auth_admin;
+
+
+ GET /_next/static/chunks/fallback/webpack.js?ts=1779327340493 500 in 29ms
+ GET /_next/static/chunks/fallback/main.js?ts=1779327340493 500 in 26ms
+ GET /_next/static/chunks/fallback/pages/_app.js?ts=1779327340493 500 in 26ms
+ GET /_next/static/chunks/fallback/pages/_error.js?ts=1779327340493 500 in 25ms
+ GET /_next/static/chunks/fallback/react-refresh.js?ts=1779327340493 500 in 25ms
+
