@@ -150,3 +150,34 @@ Press Ctrl+C to stop both servers.
 [BACKEND]  INFO:     127.0.0.1:58450 - "POST /geocode/batch HTTP/1.1" 401 Unauthorized
 
 
+
+
+"""JWT verification using Supabase JWT secret."""
+import os
+import jwt
+from typing import Optional
+
+
+def verify_user_jwt(token: str) -> Optional[dict]:
+    secret = os.getenv("SUPABASE_JWT_SECRET", "")
+    if not secret or not token:
+        return None
+    try:
+        payload = jwt.decode(
+            token,
+            secret,
+            algorithms=["HS256"],
+            options={"verify_aud": False},
+        )
+        if not payload.get("sub") and payload.get("role") not in ("authenticated", "service_role"):
+            return None
+        return payload
+    except jwt.ExpiredSignatureError:
+        print("[auth] Token expired")
+        return None
+    except jwt.InvalidSignatureError:
+        print("[auth] Invalid signature — check SUPABASE_JWT_SECRET")
+        return None
+    except Exception as e:
+        print(f"[auth] JWT decode failed: {type(e).__name__}: {e}")
+        return None
