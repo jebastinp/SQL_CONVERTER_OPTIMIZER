@@ -181,3 +181,19 @@ def verify_user_jwt(token: str) -> Optional[dict]:
     except Exception as e:
         print(f"[auth] JWT decode failed: {type(e).__name__}: {e}")
         return None
+
+
+
+DROP TABLE IF EXISTS driver_positions CASCADE;
+DROP TABLE IF EXISTS delivery_stops CASCADE;
+DROP TABLE IF EXISTS routes CASCADE;
+DROP TABLE IF EXISTS orders CASCADE;
+DROP TABLE IF EXISTS drivers CASCADE;
+DROP TABLE IF EXISTS geocode_cache CASCADE;
+DROP TABLE IF EXISTS profiles CASCADE;
+DROP FUNCTION IF EXISTS public.handle_new_user CASCADE;
+
+
+
+
+
