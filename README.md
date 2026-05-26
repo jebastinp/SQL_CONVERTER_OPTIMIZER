@@ -419,4 +419,8 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Done.
 
+final test : 
 
+   ALTER TABLE drivers ADD COLUMN IF NOT EXISTS start_address TEXT;
+   ALTER TABLE drivers ADD COLUMN IF NOT EXISTS start_lat NUMERIC(10,7);
+   ALTER TABLE drivers ADD COLUMN IF NOT EXISTS start_lng NUMERIC(10,7);
