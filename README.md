@@ -424,3 +424,14 @@ final test :
    ALTER TABLE drivers ADD COLUMN IF NOT EXISTS start_address TEXT;
    ALTER TABLE drivers ADD COLUMN IF NOT EXISTS start_lat NUMERIC(10,7);
    ALTER TABLE drivers ADD COLUMN IF NOT EXISTS start_lng NUMERIC(10,7);
+
+
+
+
+Each request must have own request id and each id must be tracked in log along with each log must be written in a seperate file , All the credentials must load from env file and each table must have uuid(to frontend) and id(primary key for mapping) and a seperate code if needed, No constants should be hardcoded it should be in constants file and all the api key must be in .env file -- Follow strictly , Dont change the existing code logics just change the code as per the folder structure that has been provided to you along with the instructions provided to you , USE SOLID principles properly and write functions in async await do dependency injection,repository pattern and create a single instance for db and pass it over there
+
+
+
+
+
+
