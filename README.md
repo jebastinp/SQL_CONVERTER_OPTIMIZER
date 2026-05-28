@@ -659,3 +659,30 @@ Then run this, replacing the email:
 sqlupdate public.users
 set role = 'admin'
 where email = 'your-email@example.com';
+
+
+create or replace function public.set_updated_at()
+returns trigger language plpgsql as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+do $$
+declare
+  t text;
+begin
+  for t in
+    select unnest(array[
+      'users','categories','products','cut_clean_options','delivery_settings',
+      'orders','order_items','support_messages','delivery_orders','site_settings'
+    ])
+  loop
+    execute format('drop trigger if exists trg_%I_updated_at on public.%I', t, t);
+    execute format(
+      'create trigger trg_%I_updated_at before update on public.%I
+       for each row execute function public.set_updated_at()', t, t
+    );
+  end loop;
+end$$;
