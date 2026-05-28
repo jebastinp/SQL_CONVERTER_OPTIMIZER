@@ -433,5 +433,229 @@ Each request must have own request id and each id must be tracked in log along w
 
 
 
+From Settings → API
+
+Project URL — looks like https://abcdefgh.supabase.co
+anon public key — long JWT starting with eyJhbG...
+service_role secret key — long JWT starting with eyJhbG... (keep secret, backend only)
+JWT Secret — scroll down to "JWT Settings", reveal & copy
 
 
+From Cloudflare R2 dashboard (separate from Supabase)
+
+Account ID
+Access Key ID + Secret Access Key (R2 → Manage R2 API Tokens → Create with Object Read & Write)
+Bucket name (you can use tarel-products or whatever)
+Public URL (R2 → your bucket → Settings → Public Access — enable, copy the pub-xxx.r2.dev URL)
+
+From Settings → Database → Connection string
+
+Session pooler URL (port 5432) — looks like postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:5432/postgres
+
+Query 1 — Extensions (run first, once)
+sql-- Required extensions
+create extension if not exists "uuid-ossp";
+create extension if not exists "pgcrypto";
+
+Query 2
+-- ============================================================================
+-- Tarel v2 schema
+-- Every table: id (BIGSERIAL PK), uuid (frontend), code (human-readable),
+-- created_at, updated_at
+-- ============================================================================
+
+-- ── Users ───────────────────────────────────────────────────────────────────
+create table if not exists public.users (
+  id            bigserial primary key,
+  uuid          uuid not null unique default gen_random_uuid(),
+  code          varchar(32) unique,
+  supabase_id   uuid not null unique,
+  name          varchar(120) not null,
+  email         varchar(255) not null unique,
+  role          varchar(16) not null default 'user' check (role in ('user','admin')),
+  profile_photo varchar(500),
+  phone         varchar(30),
+  address_line1 varchar(255),
+  locality      varchar(120),
+  city          varchar(120),
+  postcode      varchar(12),
+  user_code     varchar(16) unique,
+  is_active     boolean not null default true,
+  last_sign_in_at timestamptz,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+create index if not exists idx_users_supabase_id on public.users(supabase_id);
+create index if not exists idx_users_email on public.users(email);
+
+-- ── Categories ──────────────────────────────────────────────────────────────
+create table if not exists public.categories (
+  id            bigserial primary key,
+  uuid          uuid not null unique default gen_random_uuid(),
+  code          varchar(32) unique,
+  name          varchar(120) not null,
+  slug          varchar(140) not null unique,
+  description   text,
+  is_active     boolean not null default true,
+  sort_order    integer not null default 0,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+-- ── Products ────────────────────────────────────────────────────────────────
+create table if not exists public.products (
+  id            bigserial primary key,
+  uuid          uuid not null unique default gen_random_uuid(),
+  code          varchar(32) unique,
+  name          varchar(160) not null,
+  slug          varchar(180) not null unique,
+  description   text,
+  price_per_kg  double precision not null,
+  half_kg_price double precision,
+  one_kg_price  double precision,
+  image_url     varchar(500),
+  image_key     varchar(500),
+  stock_kg      double precision not null default 0,
+  is_dry        boolean not null default false,
+  is_active     boolean not null default true,
+  category_id   bigint not null references public.categories(id) on delete restrict,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+create index if not exists idx_products_slug on public.products(slug);
+create index if not exists idx_products_category on public.products(category_id);
+
+-- ── Cut & clean options ─────────────────────────────────────────────────────
+create table if not exists public.cut_clean_options (
+  id            bigserial primary key,
+  uuid          uuid not null unique default gen_random_uuid(),
+  code          varchar(32) unique,
+  label         varchar(200) not null,
+  is_active     boolean not null default true,
+  sort_order    double precision not null default 0,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+-- ── Delivery settings ───────────────────────────────────────────────────────
+create table if not exists public.delivery_settings (
+  id            bigserial primary key,
+  uuid          uuid not null unique default gen_random_uuid(),
+  code          varchar(32) unique,
+  cutoff_day    integer not null default 4,
+  delivery_day  integer not null default 2,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+-- Seed default delivery window (Thursday cutoff, Wednesday delivery)
+insert into public.delivery_settings (cutoff_day, delivery_day)
+select 4, 2
+where not exists (select 1 from public.delivery_settings);
+
+-- ── Orders ──────────────────────────────────────────────────────────────────
+create table if not exists public.orders (
+  id            bigserial primary key,
+  uuid          uuid not null unique default gen_random_uuid(),
+  code          varchar(32) unique,
+  user_id       bigint not null references public.users(id) on delete restrict,
+  status        varchar(20) not null default 'pending'
+                check (status in ('pending','paid','processing','out_for_delivery','delivered','cancelled')),
+  total_amount  double precision not null default 0,
+  order_date    date not null default current_date,
+  delivery_date date,
+  delivery_slot varchar(60),
+  notes         text,
+  cancelled_at  timestamptz,
+  paid_at       timestamptz,
+  delivered_at  timestamptz,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+create index if not exists idx_orders_user on public.orders(user_id);
+create index if not exists idx_orders_status on public.orders(status);
+create index if not exists idx_orders_delivery_date on public.orders(delivery_date);
+
+-- ── Order items ─────────────────────────────────────────────────────────────
+create table if not exists public.order_items (
+  id            bigserial primary key,
+  uuid          uuid not null unique default gen_random_uuid(),
+  code          varchar(32) unique,
+  order_id      bigint not null references public.orders(id) on delete cascade,
+  product_id    bigint not null references public.products(id) on delete restrict,
+  product_name  varchar(160) not null,
+  qty_kg        double precision not null,
+  price_per_kg  double precision not null,
+  line_total    double precision not null,
+  cut_clean_label varchar(200),
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+create index if not exists idx_order_items_order on public.order_items(order_id);
+
+-- ── Support messages ────────────────────────────────────────────────────────
+create table if not exists public.support_messages (
+  id            bigserial primary key,
+  uuid          uuid not null unique default gen_random_uuid(),
+  code          varchar(32) unique,
+  user_id       bigint not null references public.users(id) on delete cascade,
+  subject       varchar(160) not null,
+  message       text not null,
+  response      text,
+  status        varchar(16) not null default 'open' check (status in ('open','pending','closed')),
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+-- ── Delivery orders (legacy ops scheduling) ─────────────────────────────────
+create table if not exists public.delivery_orders (
+  id              bigserial primary key,
+  uuid            uuid not null unique default gen_random_uuid(),
+  code            varchar(32) unique,
+  customer_name   varchar(120) not null,
+  customer_phone  varchar(30) not null,
+  item_type       varchar(10) not null,
+  item_name       varchar(160) not null,
+  quantity_kg     numeric(6,2) not null,
+  order_date      date not null,
+  delivery_date   date not null,
+  status          varchar(10) not null default 'active',
+  cancelled_at    timestamptz,
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
+);
+
+-- ── Site settings (key/value) ───────────────────────────────────────────────
+create table if not exists public.site_settings (
+  id            bigserial primary key,
+  uuid          uuid not null unique default gen_random_uuid(),
+  code          varchar(32) unique,
+  key           varchar(80) not null unique,
+  value         text,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+
+Query 4 — Disable RLS on these tables
+We're verifying tokens in the FastAPI backend and going through the connection pooler as postgres, so we don't need Supabase's row-level security here.
+
+alter table public.users             disable row level security;
+alter table public.categories        disable row level security;
+alter table public.products          disable row level security;
+alter table public.cut_clean_options disable row level security;
+alter table public.delivery_settings disable row level security;
+alter table public.orders            disable row level security;
+alter table public.order_items       disable row level security;
+alter table public.support_messages  disable row level security;
+alter table public.delivery_orders   disable row level security;
+alter table public.site_settings     disable row level security;
+
+Query 5 — Create the first admin (run AFTER you sign up)
+
+First, sign up normally through your app at /register (or Authentication → Users → Add user in Supabase dashboard) using your own email.
+Then run this, replacing the email:
+
+sqlupdate public.users
+set role = 'admin'
+where email = 'your-email@example.com';
