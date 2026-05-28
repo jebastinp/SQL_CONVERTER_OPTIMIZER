@@ -686,3 +686,699 @@ begin
     );
   end loop;
 end$$;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Here’s your complete prompt to give to Claude:
+
+TAREL FISH DELIVERY — COMPLETE INTERNAL MANAGEMENT SYSTEM
+
+PROJECT OVERVIEW
+
+Build a complete internal web application for a fish and meat delivery business operating in Scotland (Edinburgh, Glasgow, Livingston, Bathgate, Inverness routes). The team receives orders via WhatsApp, processes them manually, generates invoices, and delivers weekly. This app replaces their entire Excel workflow.
+
+Tech Stack: Flask + PostgreSQL + HTML/CSS/JS (mobile-first, no React framework needed)
+
+BUSINESS RULES (CRITICAL — embed these everywhere)
+
+	•	Freight surcharge: £1.50 per kg (fish only, NOT meat/goat products)
+	•	Small order charge: £2.00 extra if order total is under £30
+	•	Inverness delivery charge: £13.00 flat
+	•	Profit split: Martin 50% / Danny 40% / Ministry 10%
+	•	Two vendors: Avra Impex (primary) and Global Food (secondary)
+	•	Two drivers: Martin (Edinburgh/Livingston/Bathgate routes) and Danny (Glasgow route)
+	•	Delivery cycle: Orders taken Monday–Friday, delivered following Wednesday
+	•	Customer ID format: AreaCode + Year + Number (e.g. ED26105, GL26052, BA26113)
+	•	Payment reference format: AreaCode + Year + Number (e.g. EH26210, IN26030)
+	•	Bank details on every invoice: Daniel Maria Lazar / Sort: 80-48-88 / Account: 13616562
+	•	Pricing: each fish has a 1kg price AND a half kg price (half kg costs more per kg as a markup strategy)
+	•	Price calculation: 2kg = 1kg + 1kg price; 1.5kg = 1kg price + half kg price
+
+DATABASE SCHEMA
+
+-- Users (internal team)
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100),
+  username VARCHAR(50) UNIQUE,
+  password_hash VARCHAR(255),
+  role VARCHAR(20), -- 'admin', 'martin', 'danny', 'team'
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Customers
+CREATE TABLE customers (
+  id SERIAL PRIMARY KEY,
+  customer_id VARCHAR(20) UNIQUE, -- e.g. ED26105
+  name VARCHAR(150),
+  phone VARCHAR(30),
+  address TEXT,
+  area VARCHAR(100),
+  postcode VARCHAR(15),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Fish/Product Master
+CREATE TABLE fish_master (
+  id SERIAL PRIMARY KEY,
+  fish_name VARCHAR(200), -- full name e.g. "(1kg) King Fish (Slice)"
+  english_name VARCHAR(150),
+  tamil_name VARCHAR(150),
+  malayalam_name VARCHAR(150),
+  size VARCHAR(10), -- '1kg' or '0.5kg'
+  avra_impex_price DECIMAL(10,2), -- vendor cost
+  global_food_price DECIMAL(10,2), -- vendor 2 cost
+  selling_price DECIMAL(10,2), -- customer price
+  cut_type VARCHAR(100), -- e.g. "Steak", "Clean and Cut"
+  is_fish BOOLEAN DEFAULT TRUE, -- FALSE for goat/meat products
+  is_active BOOLEAN DEFAULT TRUE
+);
+
+-- Delivery Weeks
+CREATE TABLE delivery_weeks (
+  id SERIAL PRIMARY KEY,
+  week_start DATE,
+  week_end DATE,
+  delivery_date DATE, -- the Wednesday
+  status VARCHAR(20) DEFAULT 'open', -- 'open', 'vendor_report_sent', 'delivered', 'closed'
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Orders (one per customer per week)
+CREATE TABLE orders (
+  id SERIAL PRIMARY KEY,
+  customer_id INTEGER REFERENCES customers(id),
+  delivery_week_id INTEGER REFERENCES delivery_weeks(id),
+  payment_reference VARCHAR(30),
+  order_date DATE,
+  delivery_date DATE,
+  driver VARCHAR(50), -- 'Martin' or 'Danny'
+  route VARCHAR(50), -- 'Edinburgh', 'Glasgow', 'Inverness', 'Livingston', 'Bathgate'
+  delivery_stop_number INTEGER,
+  status VARCHAR(30) DEFAULT 'received', 
+  -- statuses: received, availability_confirmed, invoice_sent, payment_pending, payment_received, payment_verified, delivered
+  delivery_instructions TEXT,
+  order_platform VARCHAR(50) DEFAULT 'WhatsApp',
+  raw_whatsapp_text TEXT, -- original message pasted by team
+  created_by INTEGER REFERENCES users(id),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Order Items (one row per fish per order)
+CREATE TABLE order_items (
+  id SERIAL PRIMARY KEY,
+  order_id INTEGER REFERENCES orders(id),
+  fish_master_id INTEGER REFERENCES fish_master(id),
+  fish_name VARCHAR(200), -- stored at time of order
+  quantity_kg DECIMAL(10,3),
+  unit_price DECIMAL(10,2),
+  line_total DECIMAL(10,2),
+  cut_instructions TEXT,
+  availability_status VARCHAR(20) DEFAULT 'pending', -- 'pending', 'available', 'not_available'
+  availability_checked_by INTEGER REFERENCES users(id),
+  availability_checked_at TIMESTAMP
+);
+
+-- Invoices
+CREATE TABLE invoices (
+  id SERIAL PRIMARY KEY,
+  order_id INTEGER REFERENCES orders(id),
+  invoice_number VARCHAR(30),
+  subtotal DECIMAL(10,2),
+  freight_surcharge DECIMAL(10,2),
+  delivery_charge DECIMAL(10,2),
+  total DECIMAL(10,2),
+  generated_at TIMESTAMP,
+  sent_at TIMESTAMP,
+  sent_by INTEGER REFERENCES users(id)
+);
+
+-- Payments
+CREATE TABLE payments (
+  id SERIAL PRIMARY KEY,
+  order_id INTEGER REFERENCES orders(id),
+  invoice_id INTEGER REFERENCES invoices(id),
+  amount DECIMAL(10,2),
+  payment_mode VARCHAR(50), -- 'Bank Transfer', 'Cash', 'UPI'
+  payment_name VARCHAR(150), -- name used on bank transfer
+  payment_received_date DATE,
+  payment_verified_by INTEGER REFERENCES users(id),
+  payment_verified_at TIMESTAMP,
+  status VARCHAR(20) DEFAULT 'pending', -- 'pending', 'received', 'verified'
+  screenshot_path TEXT
+);
+
+-- Expenses
+CREATE TABLE expenses (
+  id SERIAL PRIMARY KEY,
+  expense_date DATE,
+  description VARCHAR(200),
+  amount DECIMAL(10,2),
+  payment_status VARCHAR(20) DEFAULT 'paid',
+  delivery_week_id INTEGER REFERENCES delivery_weeks(id),
+  created_by INTEGER REFERENCES users(id)
+);
+
+-- Income
+CREATE TABLE income (
+  id SERIAL PRIMARY KEY,
+  income_date DATE,
+  description VARCHAR(200),
+  amount DECIMAL(10,2),
+  fish_profit DECIMAL(10,2),
+  delivery_week_id INTEGER REFERENCES delivery_weeks(id)
+);
+
+-- Vendor Reports
+CREATE TABLE vendor_reports (
+  id SERIAL PRIMARY KEY,
+  delivery_week_id INTEGER REFERENCES delivery_weeks(id),
+  generated_at TIMESTAMP,
+  generated_by INTEGER REFERENCES users(id),
+  sent_at TIMESTAMP,
+  report_data JSONB -- aggregated fish totals
+);
+
+-- Delivery Routes
+CREATE TABLE delivery_stops (
+  id SERIAL PRIMARY KEY,
+  delivery_week_id INTEGER REFERENCES delivery_weeks(id),
+  order_id INTEGER REFERENCES orders(id),
+  stop_number INTEGER,
+  route VARCHAR(50),
+  driver VARCHAR(50)
+);
+
+
+COMPLETE MODULE SPECIFICATIONS
+
+MODULE 1: AUTHENTICATION
+
+	•	Session-based login with bcrypt password hashing
+	•	Roles: admin, martin, danny, team
+	•	Login page: clean, mobile-friendly, show company name “TAREL”
+	•	Session timeout after 8 hours
+	•	Login audit log
+
+MODULE 2: DASHBOARD (Homepage after login)
+
+Show these cards at the top:
+
+	•	This week’s orders count
+	•	Pending availability checks
+	•	Unpaid invoices count
+	•	Friday vendor report status (ready / not ready)
+
+Below that show:
+
+	•	Recent orders list (last 10)
+	•	Quick action buttons: “New Order”, “Check Availability”, “Generate Vendor Report”
+	•	Pending payments needing verification
+
+MODULE 3: ORDER INTAKE (Most important module)
+
+Page: New Order
+
+Step 1 — Paste WhatsApp Chat:
+
+	•	Large textarea where team pastes the raw WhatsApp message
+	•	Button: “Parse Order with AI”
+	•	Call Claude API (claude-sonnet-4-20250514) with this system prompt:
+
+You are an order processing assistant for a fish and meat delivery business called TAREL.
+Extract order details from this WhatsApp message and return ONLY valid JSON with no markdown.
+
+Return this exact structure:
+{
+  "customer_name": "",
+  "phone": "",
+  "items": [
+    {
+      "fish_name": "",
+      "quantity_kg": 0.0,
+      "cut_instructions": "",
+      "packing_size": ""
+    }
+  ],
+  "delivery_instructions": "",
+  "notes": ""
+}
+
+Rules:
+- quantity_kg should always be a number (0.5 for half kg, 1 for 1kg, etc.)
+- If cut not mentioned, use "Clean and Cut"
+- Extract phone number if present in message
+- fish_name should match common fish names as closely as possible
+
+
+Step 2 — Review & Confirm:
+
+	•	Show parsed results in editable form fields
+	•	Customer search/autocomplete from customers table by name or phone
+	•	If new customer, show “Add New Customer” form inline
+	•	Fish name dropdown linked to fish_master table
+	•	Quantity field with +/- buttons
+	•	Add/remove item rows
+	•	Auto-calculate line totals as user fills in
+	•	Delivery week selector (auto-selects current open week)
+	•	Driver auto-assigned based on customer area, but overridable
+	•	Submit saves order with status “received”
+	•	Auto-send WhatsApp message template (via Meta Cloud API):
+“Hi [Name], thank you for your order! We are checking availability and will confirm shortly. - TAREL Team”
+
+MODULE 4: ORDER PIPELINE
+
+Page: All Orders
+
+Kanban-style status board OR filterable table with these columns:
+
+	•	Customer name
+	•	Items ordered (summary)
+	•	Total amount
+	•	Driver
+	•	Payment status (badge)
+	•	Order status (badge)
+	•	Actions
+
+Filter by: week, driver, route, payment status, order status
+
+Status badges:
+
+	•	🟡 Received
+	•	🔵 Availability Confirmed
+	•	📄 Invoice Sent
+	•	⏳ Payment Pending
+	•	✅ Payment Verified
+	•	🚚 Delivered
+
+Order Detail Page (click any order):
+
+	•	Full customer details
+	•	All order items with availability status per item
+	•	Invoice section
+	•	Payment section
+	•	Timeline of status changes
+
+MODULE 5: AVAILABILITY CHECK
+
+Page: Availability Check (Weekly)
+
+Show all orders for the current week grouped by fish type.
+
+For each fish, show:
+
+	•	Fish name
+	•	All customers who ordered it and qty
+	•	Total kg needed
+	•	Toggle per item: ✅ Available / ❌ Not Available
+
+When team member marks an item:
+
+	•	If Available → system queues WhatsApp confirmation message
+	•	If Not Available → system queues WhatsApp “sorry” message
+
+WhatsApp messages (send via Meta Cloud API):
+
+	•	Available: “Hi [Name], great news! Your order of [fish] is confirmed. We will deliver on [delivery date]. - TAREL”
+	•	Not Available: “Hi [Name], unfortunately [fish] is not available this week. We apologise for the inconvenience. - TAREL”
+
+Button: “Send All Pending WhatsApp Messages” — sends queued messages in batch
+
+MODULE 6: INVOICE GENERATOR
+
+Per Order Invoice:
+
+Auto-calculate:
+
+For each item:
+  line_total = quantity_kg × unit_price
+
+subtotal = sum of all line_totals
+
+freight_surcharge:
+  fish_only_kg = sum of kg for items where is_fish = TRUE
+  freight = fish_only_kg × 1.50
+
+delivery_charge:
+  if route == 'Inverness': delivery_charge = 13.00
+  elif subtotal < 30: delivery_charge = 2.00
+  else: delivery_charge = 0.00
+
+TOTAL = subtotal + freight_surcharge + delivery_charge
+
+
+Invoice PDF format (match exact style from Delivery Form sheet):
+
+TAREL - [DELIVERY DATE] DELIVERY INVOICES
+
+STOP [N] - [Customer Name]
+
+CUSTOMER DETAILS
+Name:              [Customer Name]
+Payment Reference: [Payment Ref]
+Phone:             [Phone]
+Address:           [Full Address]
+
+ORDER DETAILS
+Item                          Qty    Unit Price    Price
+[Fish Name]                   [qty]  [price]       [total]
+Freight Surcharge (£1.5/kg)   [kg]   1.50          [total]
+Delivery Charge               1      [charge]      [charge]
+                                                   TOTAL: £[total]
+
+BANK DETAILS
+Name:      Daniel Maria Lazar
+Sort Code: 80-48-88
+Account:   13616562
+
+
+Generate PDF using WeasyPrint. Store PDF path in invoices table.
+
+Button on order detail page: “Generate & Send Invoice” → generates PDF → sends via WhatsApp
+
+MODULE 7: CUSTOMER BOOK
+
+Page: Customers
+
+Table with search/filter:
+
+	•	Name, Customer ID, Phone, Area, Postcode
+	•	Click → Customer Profile page
+
+Customer Profile page:
+
+	•	All their personal details (editable)
+	•	Full order history (all weeks)
+	•	Total spent (lifetime)
+	•	Outstanding balance
+	•	Most ordered items
+	•	Add notes
+
+Add/Edit Customer form:
+
+	•	Auto-generate Customer ID based on area + year + sequence
+	•	Area codes: ED (Edinburgh), GL (Glasgow), LI (Livingston), BA (Bathgate), EC (East Calder), BR (Broxburn), IN (Inverness), WI (Winchburgh), AY (Ayr)
+
+Pre-load the 264 customers from the CSV data below into the database on first run.
+
+MODULE 8: FISH & PRICE MASTER
+
+Page: Fish Prices
+
+Table of all fish/products:
+
+	•	Fish name (English + Tamil + Malayalam)
+	•	Size (1kg / 500g)
+	•	Avra Impex price (vendor cost)
+	•	Global Food price (vendor 2 cost)
+	•	Selling price
+	•	Is fish? (yes/no — affects freight calculation)
+	•	Active/inactive toggle
+
+Add/Edit Fish form
+
+Pre-load all fish from the price sheet:
+
+fish_data = [
+    {"fish_name": "(1kg) Blue Swimmer Crab", "english_name": "Blue Swimmer Crab", "tamil_name": "நீலக்கண் நண்டு", "size": "1kg", "avra_price": 27, "global_price": 12, "selling_price": 37.80, "is_fish": True},
+    {"fish_name": "(1/2kg) Blue Swimmer Crab", "english_name": "Blue Swimmer Crab", "tamil_name": "நீலக்கண் நண்ட", "size": "0.5kg", "avra_price": 15, "global_price": 12, "selling_price": 21.00, "is_fish": True},
+    {"fish_name": "(1kg) Indian Mackerel (Ayila)", "english_name": "Indian Mackerel", "tamil_name": "அயிலை", "size": "1kg", "avra_price": 15, "global_price": None, "selling_price": 18.00, "is_fish": True},
+    {"fish_name": "(1/2kg) Indian Mackerel (Ayila)", "size": "0.5kg", "avra_price": 9, "selling_price": 10.80, "is_fish": True},
+    {"fish_name": "(1kg) Sardine (Mathi)", "tamil_name": "சாளை", "size": "1kg", "avra_price": 15, "selling_price": 15.00, "is_fish": True},
+    {"fish_name": "(1/2kg) Sardine (Mathi)", "size": "0.5kg", "avra_price": 9, "selling_price": 9.00, "is_fish": True},
+    {"fish_name": "(1kg) Anchovy (Netholi)", "tamil_name": "நெத்தில மீன்", "size": "1kg", "avra_price": 17, "global_price": 11, "selling_price": 22.10, "is_fish": True},
+    {"fish_name": "(1/2kg) Anchovy (Netholi)", "size": "0.5kg", "avra_price": 10, "global_price": 11, "selling_price": 13.00, "is_fish": True},
+    {"fish_name": "(1kg) Bonito", "tamil_name": "தூனை", "size": "1kg", "avra_price": 17, "global_price": 10.75, "selling_price": 22.10, "is_fish": True},
+    {"fish_name": "(1kg) Threadfin Bream (Kilimeen)", "tamil_name": "சங்கரா மன்", "size": "1kg", "avra_price": 17, "selling_price": 22.10, "is_fish": True},
+    {"fish_name": "(1kg) Ponny Fish", "tamil_name": "காரா", "size": "1kg", "avra_price": 17, "selling_price": 22.10, "is_fish": True},
+    {"fish_name": "(1kg) Yellow Scads", "size": "1kg", "avra_price": 17, "selling_price": 23.80, "is_fish": True},
+    {"fish_name": "(1kg) Yellow Travelly/Manjal Paarai", "size": "1kg", "avra_price": 18, "selling_price": 23.40, "is_fish": True},
+    {"fish_name": "(1kg) Goat Fish (Red Mullet)", "tamil_name": "நகரை", "size": "1kg", "avra_price": 18, "selling_price": 23.40, "is_fish": True},
+    {"fish_name": "(1kg) Ribbon Fish (Vaala Meen)", "size": "1kg", "avra_price": 18, "selling_price": 23.40, "is_fish": True},
+    {"fish_name": "(1kg) Rabbit Fish", "tamil_name": "ஒரா மன்", "size": "1kg", "avra_price": 18, "selling_price": 23.40, "is_fish": True},
+    {"fish_name": "(1kg) Emperor Fish (Vilameen)", "tamil_name": "விளவன", "size": "1kg", "avra_price": 19, "selling_price": 24.70, "is_fish": True},
+    {"fish_name": "(1kg) Yellowfin Tuna (Choora)", "tamil_name": "சூர மீன்", "size": "1kg", "avra_price": 19, "selling_price": 24.70, "is_fish": True},
+    {"fish_name": "(1kg) King Fish (Slice)", "tamil_name": "அருக்குவா மீன்", "size": "1kg", "avra_price": 21, "selling_price": 21.00, "is_fish": True},
+    {"fish_name": "(1kg) Barramundi (Kalanchi)", "tamil_name": "கொளவான்", "size": "1kg", "avra_price": 20, "global_price": 12.60, "selling_price": 26.00, "is_fish": True},
+    {"fish_name": "(1kg) Travelly / Vatta", "tamil_name": "பாரை", "size": "1kg", "avra_price": 20, "selling_price": 26.00, "is_fish": True},
+    {"fish_name": "(1kg) Milkshark", "tamil_name": "பால் சுற", "size": "1kg", "avra_price": 20, "selling_price": 26.00, "is_fish": True},
+    {"fish_name": "(1kg) Indian Salmon", "tamil_name": "காலான்", "size": "1kg", "avra_price": 20, "selling_price": 26.00, "is_fish": True},
+    {"fish_name": "(1kg) Barracuda (Seelav)", "tamil_name": "சீலா", "size": "1kg", "avra_price": 20, "global_price": 12.45, "selling_price": 26.00, "is_fish": True},
+    {"fish_name": "(1kg) Black Pomfret (B. Avoli)", "tamil_name": "வாவால்", "size": "1kg", "avra_price": 22, "global_price": 13.90, "selling_price": 28.60, "is_fish": True},
+    {"fish_name": "(1kg) Ladyfish", "tamil_name": "கழங்கான்", "size": "1kg", "avra_price": 22, "selling_price": 28.60, "is_fish": True},
+    {"fish_name": "(1kg) Sail Fish", "tamil_name": "மயில் மன்", "size": "1kg", "avra_price": 22, "selling_price": 30.80, "is_fish": True},
+    {"fish_name": "(1kg) Silver Pomfret (S. Avoli)", "tamil_name": "வெள்ளை வவால்", "size": "1kg", "avra_price": 39, "selling_price": 50.70, "is_fish": True},
+    {"fish_name": "(1kg) Cuttlefish (Kanava)", "tamil_name": "கன்னவய்", "size": "1kg", "avra_price": 20, "selling_price": 28.00, "is_fish": True},
+    {"fish_name": "(1kg) Squid", "tamil_name": "ஊருள கன்னவாய்", "size": "1kg", "avra_price": 24, "selling_price": 28.80, "is_fish": True},
+    {"fish_name": "(1kg) White Prawn", "tamil_name": "வெள்ளை இறால்", "size": "1kg", "avra_price": 33, "selling_price": 39.60, "is_fish": True},
+    {"fish_name": "(1/2kg) White Prawn", "size": "0.5kg", "avra_price": 18, "selling_price": 21.60, "is_fish": True},
+    {"fish_name": "(1kg) Black Tiger Prawn", "tamil_name": "டைகர இறால்", "size": "1kg", "avra_price": 36, "selling_price": 46.80, "is_fish": True},
+    {"fish_name": "(1/2kg) Black Tiger Prawn", "size": "0.5kg", "avra_price": 19, "selling_price": 24.70, "is_fish": True},
+    {"fish_name": "(1kg) Kid Goat Meat", "tamil_name": "இளம் ஆட்டு இறச்சி", "size": "1kg", "avra_price": 18, "selling_price": 23.40, "is_fish": False},
+    {"fish_name": "(1kg) Goat Meat With Bone", "tamil_name": "ஆட்டு இறைச்சி", "size": "1kg", "avra_price": 15, "selling_price": 19.50, "is_fish": False},
+    {"fish_name": "(1kg) Goat Meat without Bone", "size": "1kg", "avra_price": 21, "selling_price": 27.30, "is_fish": False},
+    {"fish_name": "(1/2kg) Goat Meat without Bone", "size": "0.5kg", "avra_price": 12, "selling_price": 15.60, "is_fish": False},
+    {"fish_name": "(1kg) Goat Liver+Heart", "size": "1kg", "avra_price": 6, "selling_price": 8.40, "is_fish": False},
+    {"fish_name": "Lamb Diced on Bone", "size": "1kg", "avra_price": 16, "selling_price": None, "is_fish": False},
+]
+
+
+MODULE 9: WEEKLY AVAILABILITY BOARD (Order Form Sheet)
+
+Page: This Week’s Orders
+
+Show a table like the Excel Order Form:
+
+	•	Rows = each fish type
+	•	Columns = kg ordered, packs, available qty
+	•	Team enters available qty per fish
+	•	Color: green if available ≥ ordered, red if shortfall
+
+Auto-populate from all confirmed orders for the week.
+
+MODULE 10: VENDOR REPORT
+
+Page: Vendor Report
+
+Generated every Friday for current week’s orders.
+
+Report shows:
+
+TAREL VENDOR REPORT — Week of [date] to [date]
+Delivery Date: [Wednesday date]
+
+FISH ORDERS:
+Fish Name              | Total Kg | Orders | Customers
+(1kg) King Fish        | 15.00    | 8      | [names]
+(1kg) Blue Swimmer Crab| 12.50    | 6      | [names]
+...
+
+MEAT ORDERS:
+Kid Goat Meat          | 22.00    | 12     | [names]
+...
+
+GRAND TOTAL: [X]kg fish + [Y]kg meat
+
+
+Button: “Download as PDF” — generates PDF
+Button: “Mark as Sent to Vendor” — updates status
+
+MODULE 11: DELIVERY ROUTES
+
+Page: Delivery Routes
+
+Two tabs: Martin’s Route | Danny’s Route
+
+For each stop show:
+
+	•	Stop number (draggable to reorder)
+	•	Customer name + address + postcode
+	•	Items ordered (summary)
+	•	Invoice total
+	•	Payment status badge
+
+Print-friendly view for driver to take on delivery day.
+
+Also show Inverness route separately if any Inverness orders that week.
+
+MODULE 12: FINANCE & EXPENSES
+
+Page: Finance
+
+Two sections:
+
+Expenses tab:
+
+	•	Add expense: date, description, amount, paid/unpaid
+	•	Categories: Petrol, Food, Fish Purchase, Meat Purchase, Car Rental, Other
+	•	List all expenses for selected week
+
+Income tab:
+
+	•	Auto-populated from verified payments
+	•	Show total income per week
+
+P&L Summary:
+
+Week: [date range]
+Total Income:    £[X]
+Total Expenses:  £[Y]
+Fish Profit:     £[Z]
+─────────────────────
+Martin (50%):    £[A]
+Danny (40%):     £[B]
+Ministry (10%):  £[C]
+
+
+Monthly summary view with all weeks.
+
+MODULE 13: WHATSAPP INTEGRATION
+
+Use Meta Cloud API (WhatsApp Business API).
+
+Config stored in environment variables:
+
+WHATSAPP_TOKEN=
+WHATSAPP_PHONE_ID=
+WHATSAPP_VERIFY_TOKEN=
+
+
+Outgoing messages (send these automatically):
+
+	1.	Order received acknowledgement (sent immediately on order creation)
+	2.	Availability confirmed (sent after team marks available)
+	3.	Availability not available (sent after team marks not available)
+	4.	Invoice (PDF attachment via WhatsApp)
+	5.	Payment confirmation (after team verifies payment)
+
+Incoming webhook:
+
+	•	Receive WhatsApp messages at /webhook/whatsapp
+	•	Log incoming messages to a whatsapp_messages table
+	•	Show unread incoming messages in dashboard
+
+If Meta API not configured, fall back to showing a “Send manually” button that copies the message text to clipboard.
+
+MODULE 14: SETTINGS
+
+Page: Settings (Admin only)
+
+	•	Team members management (add/edit/remove users)
+	•	Bank details (editable — currently Daniel Maria Lazar / 80-48-88 / 13616562)
+	•	Delivery charge settings (freight rate, small order threshold, Inverness rate)
+	•	Profit split percentages (Martin/Danny/Ministry)
+	•	WhatsApp API credentials
+	•	Current delivery week management (open/close weeks)
+
+FILE STRUCTURE
+
+tarel/
+├── app.py                  # Main Flask app, all routes
+├── config.py               # Config, env vars
+├── models.py               # SQLAlchemy models
+├── db.py                   # DB connection
+├── requirements.txt
+├── .env
+├── templates/
+│   ├── base.html           # Base layout with nav
+│   ├── login.html
+│   ├── dashboard.html
+│   ├── orders/
+│   │   ├── list.html
+│   │   ├── new.html
+│   │   ├── detail.html
+│   ├── customers/
+│   │   ├── list.html
+│   │   ├── profile.html
+│   ├── availability.html
+│   ├── invoice.html
+│   ├── vendor_report.html
+│   ├── delivery_routes.html
+│   ├── finance.html
+│   ├── fish_master.html
+│   ├── settings.html
+├── static/
+│   ├── css/
+│   │   └── style.css       # Mobile-first CSS
+│   ├── js/
+│   │   └── app.js
+├── services/
+│   ├── whatsapp.py         # Meta API integration
+│   ├── ai_parser.py        # Claude API order parsing
+│   ├── invoice_pdf.py      # WeasyPrint PDF generation
+│   ├── vendor_report.py    # Report generation
+└── seed_data.py            # Pre-load customers + fish prices
+
+
+UI/UX REQUIREMENTS
+
+	•	Mobile-first design (team uses phones)
+	•	Color scheme: deep navy (#1a2744) + gold (#f0a500) — professional fish business feel
+	•	Large touch targets (minimum 44px buttons)
+	•	Status badges with clear colors (yellow=pending, blue=confirmed, green=paid, red=issue)
+	•	Bottom navigation bar on mobile: Orders | Customers | Availability | Finance
+	•	Toast notifications for all actions
+	•	Confirm dialogs before destructive actions
+	•	Loading states on all API calls
+	•	Offline-friendly: show cached data if connection drops
+
+ENVIRONMENT VARIABLES NEEDED
+
+DATABASE_URL=postgresql://user:pass@localhost/tarel
+SECRET_KEY=your-secret-key
+ANTHROPIC_API_KEY=your-key
+WHATSAPP_TOKEN=
+WHATSAPP_PHONE_ID=
+WHATSAPP_VERIFY_TOKEN=
+
+
+SEED DATA
+
+On first run (python seed_data.py), insert:
+
+	1.	Default admin user: username=admin, password=tarel2026
+	2.	All 40 fish/products from the price list above
+	3.	All 264 customers from the customer database (provide as CSV import)
+	4.	Current open delivery week
+
+WHAT TO BUILD FIRST (Priority Order)
+
+	1.	Database setup + models
+	2.	Authentication (login/logout)
+	3.	Customer Book (pre-load data)
+	4.	Fish Master (pre-load prices)
+	5.	New Order form with AI parsing
+	6.	Order Pipeline view
+	7.	Availability Check module
+	8.	Invoice Generator + PDF
+	9.	Vendor Report
+	10.	Delivery Routes
+	11.	Finance/Expenses
+	12.	WhatsApp Integration
+	13.	Settings page
+
+Build this as a complete, production-ready Flask application. Every module should be fully functional. Use SQLAlchemy ORM. All forms should have validation. All tables should be searchable and filterable. The app should work perfectly on mobile browsers.
+
+That’s your full prompt. Hand this to Claude and it will build the entire system module by module. If it hits context limits, tell it to continue from whichever module it stopped at — the prompt is structured so each module is independent.
+
