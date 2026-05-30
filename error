@@ -126,3 +126,5 @@ jebastin@Jebastins-MacBook-Air tarel 4 %
 
 DATABASE_URL=postgresql://postgres:lc0sB3fEvNd2bAOG@db.https://avmhstenbtyibgskpoiq.supabase.co.supabase.co:5432/postgres
 
+DATABASE_URL=postgresql://postgres:lc0sB3fEvNd2bAOG@db.avmhstenbtyibgskpoiq.supabase.co:5432/postgres
+SECRET_KEY=tarel-secret-2026
