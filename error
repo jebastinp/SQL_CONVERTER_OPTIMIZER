@@ -128,3 +128,44 @@ DATABASE_URL=postgresql://postgres:lc0sB3fEvNd2bAOG@db.https://avmhstenbtyibgskp
 
 DATABASE_URL=postgresql://postgres:lc0sB3fEvNd2bAOG@db.avmhstenbtyibgskpoiq.supabase.co:5432/postgres
 SECRET_KEY=tarel-secret-2026
+
+
+jebastin@Jebastins-MacBook-Air tarel 4 % ./run.sh
+
+==========================================
+  TAREL Fish Delivery — Admin System
+==========================================
+
+  [1/3] Installing packages...
+
+[notice] A new release of pip is available: 25.3 -> 26.0.1
+[notice] To update, run: /Library/Developer/CommandLineTools/usr/bin/python3 -m pip install --upgrade pip
+  [2/3] Setting up database...
+Creating tables...
+✅ Users created (admin/tarel2026, martin/martin2026, danny/danny2026)
+✅ 40 fish/products added
+✅ Delivery week created — delivery on 2026-06-03
+
+🎉 Seed complete! Login at http://localhost:5000
+   Username: admin | Password: tarel2026
+   Username: martin | Password: martin2026
+   Username: danny  | Password: danny2026
+  [3/3] Starting TAREL...
+
+==========================================
+  Open in browser: http://localhost:5000
+  Login: admin / tarel2026
+  Stop with: Ctrl+C
+==========================================
+
+ * Serving Flask app 'app'
+ * Debug mode: on
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5000
+Press CTRL+C to quit
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 110-101-381
+
+
+the local host page and it is howing only the white screen notthing sther pls check and update and give the proper app pls do all the test and give me a full production app 
