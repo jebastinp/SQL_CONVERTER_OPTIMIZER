@@ -2054,4 +2054,410 @@ Build this as a complete, production-ready Flask application. Every module shoul
 That’s your full prompt. Hand this to Claude and it will build the entire system module by module. If it hits context limits, tell it to continue from whichever module it stopped at — the prompt is structured so each module is independent.
 
 
+Build a Production-Grade SaaS for Automated Web Content Archiving & PDF Export
 
+Build a full-stack SaaS called ArchiveFlow that allows authenticated users to automate the export of web content they are authorized to access (such as their own documentation, internal knowledge bases, public websites that permit crawling, or platforms that provide export rights).
+
+Goals
+
+The application must be production-ready, horizontally scalable, and capable of processing very large jobs (10,000+ pages) while respecting robots.txt, rate limits, authentication, and site permissions.
+
+The system must not bypass authentication, DRM, paywalls, CAPTCHAs, or other access controls. It should only automate browsing and exporting on behalf of a logged-in user who has permission to access the content.
+
+⸻
+
+Tech Stack
+
+Frontend:
+
+* Next.js 15
+* TypeScript
+* TailwindCSS
+* shadcn/ui
+* React Query
+
+Backend:
+
+* FastAPI
+* PostgreSQL
+* Redis
+* Celery (or Dramatiq)
+* Playwright
+* Chromium
+* Docker
+
+Infrastructure:
+
+* Nginx
+* Docker Compose
+* Kubernetes-ready
+* S3-compatible storage
+* Cloudflare support
+
+Authentication:
+
+* JWT
+* Google OAuth
+* GitHub OAuth
+
+Payments:
+
+* Stripe subscriptions
+
+Monitoring:
+
+* Prometheus
+* Grafana
+* Sentry
+
+⸻
+
+Features
+
+Authentication
+
+* Email login
+* OAuth
+* MFA
+* Session management
+* Organization support
+
+⸻
+
+Dashboard
+
+Show:
+
+* Jobs
+* Running jobs
+* Completed jobs
+* Failed jobs
+* Queue
+* Storage used
+* Subscription
+* Credits
+
+⸻
+
+New Archive Job
+
+User enters:
+
+* Starting URL
+* Crawl depth
+* Maximum pages
+* Domain restrictions
+* Include patterns
+* Exclude patterns
+* Delay between requests
+* Concurrent workers
+* Output format (PDF/HTML/Markdown)
+
+⸻
+
+Crawl Engine
+
+Use Playwright.
+
+Support:
+
+* SPA websites
+* Infinite scroll
+* Lazy loading
+* JavaScript rendering
+* Dynamic navigation
+
+⸻
+
+Authentication
+
+Allow user-provided login automation:
+
+* Login URL
+* Username/password
+* Cookie import
+* Session persistence
+
+Never bypass authentication.
+
+⸻
+
+Page Discovery
+
+Support:
+
+* Internal links
+* Sitemap.xml
+* Navigation menus
+* Search pages
+* Pagination
+
+Avoid duplicates.
+
+⸻
+
+Queue System
+
+Redis queue.
+
+Support:
+
+* Millions of URLs
+* Retry
+* Priority
+* Pause
+* Resume
+* Cancel
+
+⸻
+
+PDF Engine
+
+Each page should be rendered in Chromium.
+
+Support:
+
+* Print backgrounds
+* Headers
+* Footers
+* Table of contents
+* Page numbers
+
+⸻
+
+Merge PDFs
+
+Automatically combine into volumes.
+
+Examples:
+
+Volume 1
+Pages 1–1000
+
+Volume 2
+1001–2000
+
+etc.
+
+⸻
+
+Large Scale
+
+Support:
+
+* 10,000+
+* 50,000+
+* 100,000+
+
+Use streaming.
+
+Never load everything into memory.
+
+⸻
+
+Storage
+
+Store:
+
+Original HTML
+
+PDF
+
+Screenshots
+
+Metadata
+
+Logs
+
+Downloads
+
+⸻
+
+Progress
+
+Live websocket updates.
+
+Show:
+
+URLs processed
+
+Remaining
+
+ETA
+
+CPU
+
+RAM
+
+Workers
+
+Queue
+
+⸻
+
+Scheduling
+
+Support:
+
+Daily
+
+Weekly
+
+Monthly
+
+Webhook trigger
+
+API trigger
+
+⸻
+
+API
+
+REST API
+
+GraphQL optional
+
+Webhooks
+
+⸻
+
+Permissions
+
+Owner
+
+Admin
+
+Member
+
+Viewer
+
+⸻
+
+Export
+
+ZIP
+
+PDF
+
+Markdown
+
+HTML
+
+JSON
+
+CSV
+
+⸻
+
+Search
+
+Full-text search.
+
+⸻
+
+Retry
+
+Retry failed pages automatically.
+
+⸻
+
+Duplicate Detection
+
+Hash URLs.
+
+Hash HTML.
+
+Avoid duplicate exports.
+
+⸻
+
+Logging
+
+Detailed logs.
+
+Per-page logs.
+
+Worker logs.
+
+Network logs.
+
+⸻
+
+Analytics
+
+Pages exported
+
+Time saved
+
+Bandwidth
+
+Storage
+
+Daily usage
+
+⸻
+
+Admin Panel
+
+Manage:
+
+Users
+
+Jobs
+
+Workers
+
+Billing
+
+Storage
+
+System health
+
+⸻
+
+Security
+
+Validate URLs.
+
+Prevent SSRF.
+
+Restrict local network access.
+
+Rate limiting.
+
+Input validation.
+
+Audit logging.
+
+Encrypted secrets.
+
+⸻
+
+Deployment
+
+Docker Compose.
+
+Kubernetes manifests.
+
+GitHub Actions CI/CD.
+
+Automatic migrations.
+
+⸻
+
+Deliverables
+
+Generate:
+
+* Complete frontend
+* Complete backend
+* Database schema
+* Docker setup
+* API documentation
+* Tests
+* Production deployment guide
+* Monitoring configuration
+* Sample data
+* OpenAPI documentation
+
+The resulting application should be maintainable, scalable, and suitable for organizations archiving content they are authorized to access.
