@@ -1606,858 +1606,1970 @@ Return this exact structure:
   "phone": "",
   "items": [
     {
-      "fish_name": "",
-      "quantity_kg": 0.0,
-      "cut_instructions": "",
-      "packing_size": ""
-    }
-  ],
-  "delivery_instructions": "",
-  "notes": ""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# TAREL — MINI ORDER PAGE + AI CUSTOMER ORDERING SYSTEM
+
+## IMPORTANT — READ FIRST
+
+I have provided the existing Tarel website project.
+
+**DO NOT replace, redesign, or damage the existing Tarel website.**
+
+Use the existing project as the visual and branding source of truth.
+
+The existing project currently contains:
+
+* `index.html`
+* `styles.css`
+* `script.js`
+* `assets/logo.jpg`
+* `assets/logo-transparent.png`
+* `assets/logo-cream.png`
+* `assets/favicon.png`
+* Existing seafood/meat images
+* Existing Tarel WhatsApp functionality
+* Existing Tarel colours, typography, buttons, spacing and responsive design
+
+The current website is a static HTML/CSS/JavaScript project.
+
+The existing Tarel branding must remain exactly consistent.
+
+---
+
+# OBJECTIVE
+
+Build a complete **Tarel Mini Order Page** that works as a customer-facing ordering experience accessed from WhatsApp.
+
+The final concept is:
+
+**Tarel Mini Order Page = Normal Shopping + AI Built Into The Experience**
+
+The customer should be able to:
+
+1. Open an order link from WhatsApp
+
+2. Be identified by mobile number / customer ID
+
+3. See their name and initial
+
+4. Browse Tarel products
+
+5. Search products normally
+
+6. Use AI-powered natural-language search
+
+7. Ask AI what fish/product is suitable for a dish
+
+8. Ask AI to build an order
+
+9. Set a budget
+
+10. Calculate portions
+
+11. Reorder previous purchases
+
+12. Receive personalised recommendations
+
+13. Add AI recommendations directly to cart
+
+14. Adjust quantity
+
+15. Select weight
+
+16. Select cut/preparation
+
+17. See live cart totals
+
+18. Apply discounts
+
+19. Apply freight surcharge rules
+
+20. Choose delivery or collection\
+
+21. Add order notes
+
+22. Review the final order
+
+23. Place the order
+
+24. Receive an Order ID
+
+25. See the order as `Pending Confirmation`
+
+On the admin side, the same order must appear under:
+
+**Received Order**
+
+Admin can:
+
+* Review
+* Confirm
+* Reject
+
+When confirmed, the SAME order must move into the existing:
+
+**Order Management**
+
+Do NOT create duplicate orders.
+
+---
+
+# VERY IMPORTANT ARCHITECTURE RULE
+
+Do NOT call AI for every customer action.
+
+Normal ecommerce functionality must remain normal application logic.
+
+## NO AI required for:
+
+* Product listing
+* Product images
+* Product prices
+* Product availability
+* Stock
+* Weight selection
+* Cut selection
+* Quantity
+* Cart
+* Discount calculation
+* Freight surcharge
+* Delivery charge
+* Delivery date
+* Checkout
+* Order creation
+* Order status
+* Customer lookup
+* Final price calculation
+
+These must be handled by normal backend/application logic.
+
+## AI is ONLY used for:
+
+* Natural-language product search
+* AI Fish Finder
+* Meal/cooking recommendations
+* Build My Order
+* Budget-based ordering
+* Portion recommendations
+* Personalised recommendations
+* Understanding customer intent
+* Reorder recommendations
+* Conversational shopping assistance
+
+AI must NEVER invent:
+
+* Products
+* Prices
+* Stock
+* Discounts
+* Delivery charges
+* Freight charges
+* Final order totals
+
+The database/backend is always the source of truth.
+
+---
+
+# DO NOT USE META WHATSAPP API FOR THIS MVP
+
+The current implementation should NOT require:
+
+* Meta Business API
+* WhatsApp Cloud API
+* WABA
+* Meta access tokens
+* WhatsApp webhooks
+* WhatsApp Flows
+
+For this MVP, WhatsApp is simply the channel where we send the customer the Tarel Mini Order Page link.
+
+Example:
+
+`https://tarel.co.uk/order/fresh-catch`
+
+For local development, use:
+
+`http://localhost:<port>/order/fresh-catch`
+
+The existing WhatsApp buttons should be updated so they can open the Mini Order Page instead of directly creating a WhatsApp order message where appropriate.
+
+Keep the existing WhatsApp number/functionality available for customer support.
+
+---
+
+# DO NOT DEPLOY
+
+This task is DEVELOPMENT ONLY.
+
+Do NOT:
+
+* push to GitHub
+* commit changes
+* deploy to Vercel
+* deploy to Netlify
+* deploy to Render
+* deploy anywhere
+* publish anything
+* modify production
+* require external production services
+
+Everything must run locally.
+
+The goal is to test the COMPLETE customer + order + admin flow locally.
+
+---
+
+# FIRST STEP — INSPECT THE EXISTING PROJECT
+
+Before modifying anything:
+
+1. Inspect every existing HTML/CSS/JS file.
+2. Inspect the existing assets.
+3. Identify the exact Tarel logo being used.
+4. Identify existing colours.
+5. Identify typography.
+6. Identify button styles.
+7. Identify cards.
+8. Identify responsive breakpoints.
+9. Identify existing WhatsApp functionality.
+10. Identify existing product information.
+11. Reuse as much existing code/assets/styles as practical.
+
+Do NOT create a completely different visual system.
+
+---
+
+# BRANDING
+
+Use the existing Tarel branding.
+
+Existing palette:
+
+Primary:
+`#2E4237`
+
+Secondary:
+`#708E52`
+
+Background:
+`#EAE2D7`
+
+Accent:
+`#C9A24B`
+
+Existing typography:
+
+* Fraunces
+* Manrope
+
+Use the existing Tarel logo:
+
+`assets/logo-transparent.png`
+
+Use the existing favicon:
+
+`assets/favicon.png`
+
+Use existing product images wherever possible.
+
+DO NOT create a new logo.
+
+DO NOT replace the existing brand colours.
+
+DO NOT introduce a generic ecommerce template.
+
+The Mini Order Page must look like a natural extension of Tarel.
+
+---
+
+# CUSTOMER URL STRUCTURE
+
+Create a route/page similar to:
+
+`/order/fresh-catch`
+
+For development:
+
+`http://localhost:8080/order/fresh-catch`
+
+The system should support future campaign URLs such as:
+
+`/order/fresh-friday`
+
+`/order/weekend-special`
+
+`/order/seafood-box`
+
+Create the structure so that campaign-specific product lists can be added later.
+
+---
+
+# CUSTOMER EXPERIENCE
+
+## SCREEN 1 — CUSTOMER IDENTIFICATION
+
+When opening:
+
+`/order/fresh-catch`
+
+Show:
+
+Tarel logo
+
+Welcome to Tarel
+
+Ask for:
+
+**Mobile Number**
+
+OR
+
+**Customer ID**
+
+For existing customers, simulate lookup using local development data.
+
+If customer is found:
+
+Show:
+
+**J**
+
+**Welcome back, Jebastin**
+
+`Customer ID: TAR1234`
+
+The initial should be generated automatically from the customer name.
+
+Do NOT make the customer enter their name every time if the customer already exists.
+
+If the customer is new:
+
+Allow:
+
+* Name
+* Mobile
+* Address
+
+Then create a local development customer record.
+
+---
+
+# CUSTOMER PROFILE
+
+Create mock/local customer data for development.
+
+Example customers:
+
+### Customer 1
+
+Name:
+Jebastin P
+
+Customer ID:
+TAR1234
+
+Phone:
++44 7553 132674
+
+Favourite products:
+
+* Salmon
+* Tiger Prawns
+
+Frequent categories:
+
+* Fish
+* Prawns
+
+Preferred preparation:
+
+* Fillet
+* Curry Cut
+
+Average order value:
+£42
+
+### Customer 2
+
+Name:
+Priya S
+
+Customer ID:
+TAR1240
+
+Favourite products:
+
+* King Fish
+* Squid
+
+### Customer 3
+
+Name:
+Arun Kumar
+
+Customer ID:
+TAR1255
+
+Favourite products:
+
+* Prawns
+* Crab
+
+Use this data to demonstrate that recommendations differ between customers.
+
+---
+
+# MAIN MINI ORDER PAGE
+
+The main page should have:
+
+## HEADER
+
+Use the existing Tarel header style.
+
+Show:
+
+Tarel logo
+
+Cart icon
+
+Customer avatar/initial
+
+Customer name
+
+---
+
+# PERSONALIZED CUSTOMER AREA
+
+Example:
+
+**J**
+
+**Welcome back, Jebastin**
+
+`Customer ID: TAR1234`
+
+Then:
+
+### Your usual
+
+Show the customer's frequently ordered products.
+
+Example:
+
+* Salmon
+* Tiger Prawns
+
+Provide:
+
+`+ Add`
+
+or:
+
+`Reorder`
+
+---
+
+# AI AREA
+
+Do NOT make the AI dominate the screen.
+
+Create one elegant Tarel-branded section:
+
+## ✨ Ask Tarel
+
+Subtitle:
+
+**What are you looking for today?**
+
+Input:
+
+`Tell me what you want...`
+
+Include search/submit button.
+
+Under it show quick actions:
+
+* 🐟 Find Fish
+* 🍛 What should I cook?
+* ✨ Build My Order
+* 💰 Under £30
+* 👨‍👩‍👧 For My Family
+* 🔄 Order Again
+
+This should look like part of the Tarel interface, not a separate chatbot.
+
+---
+
+# AI FEATURE 1 — AI FISH FINDER
+
+Customer can type:
+
+“I need boneless fish for frying.”
+
+The AI should understand:
+
+```text
+Category = Fish
+Preparation = Boneless
+Cooking = Frying
+```
+
+Then query/filter REAL available Tarel products.
+
+Display:
+
+### Tarel recommends
+
+Product image
+
+Salmon Fillet
+
+Boneless
+
+£14/kg
+
+Button:
+
+`Add to Cart`
+
+Also show alternative:
+
+King Fish Steak
+
+Button:
+
+`Add to Cart`
+
+The AI must use product IDs internally.
+
+Do not add product names directly to the cart without validating them against the product database.
+
+---
+
+# AI FEATURE 2 — NATURAL LANGUAGE PRODUCT SEARCH
+
+Customer can type:
+
+“Show me fish under £15 suitable for curry.”
+
+Convert the request into structured filters.
+
+Example:
+
+```json
+{
+  "category": "fish",
+  "max_price": 15,
+  "preparation": "curry"
 }
+```
 
-Rules:
-- quantity_kg should always be a number (0.5 for half kg, 1 for 1kg, etc.)
-- If cut not mentioned, use "Clean and Cut"
-- Extract phone number if present in message
-- fish_name should match common fish names as closely as possible
+Then query actual Tarel products.
 
+Display matching products.
 
-Step 2 — Review & Confirm:
+Do NOT use AI to invent the result.
 
-	•	Show parsed results in editable form fields
-	•	Customer search/autocomplete from customers table by name or phone
-	•	If new customer, show “Add New Customer” form inline
-	•	Fish name dropdown linked to fish_master table
-	•	Quantity field with +/- buttons
-	•	Add/remove item rows
-	•	Auto-calculate line totals as user fills in
-	•	Delivery week selector (auto-selects current open week)
-	•	Driver auto-assigned based on customer area, but overridable
-	•	Submit saves order with status “received”
-	•	Auto-send WhatsApp message template (via Meta Cloud API):
-“Hi [Name], thank you for your order! We are checking availability and will confirm shortly. - TAREL Team”
+---
 
-MODULE 4: ORDER PIPELINE
+# AI FEATURE 3 — WHAT SHOULD I COOK?
 
-Page: All Orders
+Customer:
 
-Kanban-style status board OR filterable table with these columns:
+“I am cooking fish curry for 5 people.”
 
-	•	Customer name
-	•	Items ordered (summary)
-	•	Total amount
-	•	Driver
-	•	Payment status (badge)
-	•	Order status (badge)
-	•	Actions
+AI should understand:
 
-Filter by: week, driver, route, payment status, order status
+* Dish: Fish curry
+* People: 5
 
-Status badges:
+Then query available products.
 
-	•	🟡 Received
-	•	🔵 Availability Confirmed
-	•	📄 Invoice Sent
-	•	⏳ Payment Pending
-	•	✅ Payment Verified
-	•	🚚 Delivered
+Recommendation:
 
-Order Detail Page (click any order):
+King Fish
 
-	•	Full customer details
-	•	All order items with availability status per item
-	•	Invoice section
-	•	Payment section
-	•	Timeline of status changes
+Curry Cut
 
-MODULE 5: AVAILABILITY CHECK
+Approximately 1.5kg
 
-Page: Availability Check (Weekly)
+£24
 
-Show all orders for the current week grouped by fish type.
+Button:
 
-For each fish, show:
+`Add 1.5kg to Cart`
 
-	•	Fish name
-	•	All customers who ordered it and qty
-	•	Total kg needed
-	•	Toggle per item: ✅ Available / ❌ Not Available
+Also show optional complementary products if available.
 
-When team member marks an item:
+---
 
-	•	If Available → system queues WhatsApp confirmation message
-	•	If Not Available → system queues WhatsApp “sorry” message
+# AI FEATURE 4 — BUILD MY ORDER
 
-WhatsApp messages (send via Meta Cloud API):
+Customer selects:
 
-	•	Available: “Hi [Name], great news! Your order of [fish] is confirmed. We will deliver on [delivery date]. - TAREL”
-	•	Not Available: “Hi [Name], unfortunately [fish] is not available this week. We apologise for the inconvenience. - TAREL”
+**Build My Order**
 
-Button: “Send All Pending WhatsApp Messages” — sends queued messages in batch
+AI asks:
 
-MODULE 6: INVOICE GENERATOR
+1. How many people?
+2. What do you want?
+3. What's your budget?
 
-Per Order Invoice:
+Example:
 
-Auto-calculate:
+4 people
 
-For each item:
-  line_total = quantity_kg × unit_price
+Fish + Prawns
 
-subtotal = sum of all line_totals
+£40
 
-freight_surcharge:
-  fish_only_kg = sum of kg for items where is_fish = TRUE
-  freight = fish_only_kg × 1.50
+Then produce a proposed basket.
 
-delivery_charge:
-  if route == 'Inverness': delivery_charge = 13.00
-  elif subtotal < 30: delivery_charge = 2.00
-  else: delivery_charge = 0.00
+Example:
 
-TOTAL = subtotal + freight_surcharge + delivery_charge
+King Fish — 1kg — £16
 
+Tiger Prawns — 500g — £18
 
-Invoice PDF format (match exact style from Delivery Form sheet):
+Squid — 250g — £6
 
-TAREL - [DELIVERY DATE] DELIVERY INVOICES
+Total:
 
-STOP [N] - [Customer Name]
-
-CUSTOMER DETAILS
-Name:              [Customer Name]
-Payment Reference: [Payment Ref]
-Phone:             [Phone]
-Address:           [Full Address]
-
-ORDER DETAILS
-Item                          Qty    Unit Price    Price
-[Fish Name]                   [qty]  [price]       [total]
-Freight Surcharge (£1.5/kg)   [kg]   1.50          [total]
-Delivery Charge               1      [charge]      [charge]
-                                                   TOTAL: £[total]
-
-BANK DETAILS
-Name:      Daniel Maria Lazar
-Sort Code: 80-48-88
-Account:   13616562
+£40
 
+Button:
 
-Generate PDF using WeasyPrint. Store PDF path in invoices table.
-
-Button on order detail page: “Generate & Send Invoice” → generates PDF → sends via WhatsApp
+`Add All to Cart`
 
-MODULE 7: CUSTOMER BOOK
+IMPORTANT:
 
-Page: Customers
+The backend must validate every item and recalculate the actual total before adding/checkout.
 
-Table with search/filter:
+---
 
-	•	Name, Customer ID, Phone, Area, Postcode
-	•	Click → Customer Profile page
+# AI FEATURE 5 — BUDGET ORDERING
 
-Customer Profile page:
+Customer:
 
-	•	All their personal details (editable)
-	•	Full order history (all weeks)
-	•	Total spent (lifetime)
-	•	Outstanding balance
-	•	Most ordered items
-	•	Add notes
+“I have £30.”
 
-Add/Edit Customer form:
+AI searches available products and recommends a combination within the budget.
 
-	•	Auto-generate Customer ID based on area + year + sequence
-	•	Area codes: ED (Edinburgh), GL (Glasgow), LI (Livingston), BA (Bathgate), EC (East Calder), BR (Broxburn), IN (Inverness), WI (Winchburgh), AY (Ayr)
+The final cart must be calculated by the backend.
 
-Pre-load the 264 customers from the CSV data below into the database on first run.
+AI cannot override product prices.
 
-MODULE 8: FISH & PRICE MASTER
+---
 
-Page: Fish Prices
+# AI FEATURE 6 — PORTION CALCULATOR
 
-Table of all fish/products:
+Customer:
 
-	•	Fish name (English + Tamil + Malayalam)
-	•	Size (1kg / 500g)
-	•	Avra Impex price (vendor cost)
-	•	Global Food price (vendor 2 cost)
-	•	Selling price
-	•	Is fish? (yes/no — affects freight calculation)
-	•	Active/inactive toggle
+“How much fish do I need for 8 people?”
 
-Add/Edit Fish form
+AI can recommend:
 
-Pre-load all fish from the price sheet:
+Approximately 1.5–2.5kg depending on dish/type.
 
-fish_data = [
-    {"fish_name": "(1kg) Blue Swimmer Crab", "english_name": "Blue Swimmer Crab", "tamil_name": "நீலக்கண் நண்டு", "size": "1kg", "avra_price": 27, "global_price": 12, "selling_price": 37.80, "is_fish": True},
-    {"fish_name": "(1/2kg) Blue Swimmer Crab", "english_name": "Blue Swimmer Crab", "tamil_name": "நீலக்கண் நண்டு", "size": "0.5kg", "avra_price": 15, "global_price": 12, "selling_price": 21.00, "is_fish": True},
-    {"fish_name": "(1kg) Indian Mackerel (Ayila)", "english_name": "Indian Mackerel", "tamil_name": "அயிலை", "size": "1kg", "avra_price": 15, "global_price": None, "selling_price": 18.00, "is_fish": True},
-    {"fish_name": "(1/2kg) Indian Mackerel (Ayila)", "size": "0.5kg", "avra_price": 9, "selling_price": 10.80, "is_fish": True},
-    {"fish_name": "(1kg) Sardine (Mathi)", "tamil_name": "சாளை", "size": "1kg", "avra_price": 15, "selling_price": 15.00, "is_fish": True},
-    {"fish_name": "(1/2kg) Sardine (Mathi)", "size": "0.5kg", "avra_price": 9, "selling_price": 9.00, "is_fish": True},
-    {"fish_name": "(1kg) Anchovy (Netholi)", "tamil_name": "நெத்திலி மீன்", "size": "1kg", "avra_price": 17, "global_price": 11, "selling_price": 22.10, "is_fish": True},
-    {"fish_name": "(1/2kg) Anchovy (Netholi)", "size": "0.5kg", "avra_price": 10, "global_price": 11, "selling_price": 13.00, "is_fish": True},
-    {"fish_name": "(1kg) Bonito", "tamil_name": "தூனை", "size": "1kg", "avra_price": 17, "global_price": 10.75, "selling_price": 22.10, "is_fish": True},
-    {"fish_name": "(1kg) Threadfin Bream (Kilimeen)", "tamil_name": "சங்கரா மீன்", "size": "1kg", "avra_price": 17, "selling_price": 22.10, "is_fish": True},
-    {"fish_name": "(1kg) Ponny Fish", "tamil_name": "காரா", "size": "1kg", "avra_price": 17, "selling_price": 22.10, "is_fish": True},
-    {"fish_name": "(1kg) Yellow Scads", "size": "1kg", "avra_price": 17, "selling_price": 23.80, "is_fish": True},
-    {"fish_name": "(1kg) Yellow Travelly/Manjal Paarai", "size": "1kg", "avra_price": 18, "selling_price": 23.40, "is_fish": True},
-    {"fish_name": "(1kg) Goat Fish (Red Mullet)", "tamil_name": "நகரை", "size": "1kg", "avra_price": 18, "selling_price": 23.40, "is_fish": True},
-    {"fish_name": "(1kg) Ribbon Fish (Vaala Meen)", "size": "1kg", "avra_price": 18, "selling_price": 23.40, "is_fish": True},
-    {"fish_name": "(1kg) Rabbit Fish", "tamil_name": "ஒரா மீன்", "size": "1kg", "avra_price": 18, "selling_price": 23.40, "is_fish": True},
-    {"fish_name": "(1kg) Emperor Fish (Vilameen)", "tamil_name": "விளவன்", "size": "1kg", "avra_price": 19, "selling_price": 24.70, "is_fish": True},
-    {"fish_name": "(1kg) Yellowfin Tuna (Choora)", "tamil_name": "சூரை மீன்", "size": "1kg", "avra_price": 19, "selling_price": 24.70, "is_fish": True},
-    {"fish_name": "(1kg) King Fish (Slice)", "tamil_name": "அருக்குவா மீன்", "size": "1kg", "avra_price": 21, "selling_price": 21.00, "is_fish": True},
-    {"fish_name": "(1kg) Barramundi (Kalanchi)", "tamil_name": "கொளவான்", "size": "1kg", "avra_price": 20, "global_price": 12.60, "selling_price": 26.00, "is_fish": True},
-    {"fish_name": "(1kg) Travelly / Vatta", "tamil_name": "பாரை", "size": "1kg", "avra_price": 20, "selling_price": 26.00, "is_fish": True},
-    {"fish_name": "(1kg) Milkshark", "tamil_name": "பால் சுறா", "size": "1kg", "avra_price": 20, "selling_price": 26.00, "is_fish": True},
-    {"fish_name": "(1kg) Indian Salmon", "tamil_name": "காலான்", "size": "1kg", "avra_price": 20, "selling_price": 26.00, "is_fish": True},
-    {"fish_name": "(1kg) Barracuda (Seelav)", "tamil_name": "சீலா", "size": "1kg", "avra_price": 20, "global_price": 12.45, "selling_price": 26.00, "is_fish": True},
-    {"fish_name": "(1kg) Black Pomfret (B. Avoli)", "tamil_name": "வாவால்", "size": "1kg", "avra_price": 22, "global_price": 13.90, "selling_price": 28.60, "is_fish": True},
-    {"fish_name": "(1kg) Ladyfish", "tamil_name": "கிழங்கான்", "size": "1kg", "avra_price": 22, "selling_price": 28.60, "is_fish": True},
-    {"fish_name": "(1kg) Sail Fish", "tamil_name": "மயில் மீன்", "size": "1kg", "avra_price": 22, "selling_price": 30.80, "is_fish": True},
-    {"fish_name": "(1kg) Silver Pomfret (S. Avoli)", "tamil_name": "வெள்ளை வாவால்", "size": "1kg", "avra_price": 39, "selling_price": 50.70, "is_fish": True},
-    {"fish_name": "(1kg) Cuttlefish (Kanava)", "tamil_name": "கன்னவாய்", "size": "1kg", "avra_price": 20, "selling_price": 28.00, "is_fish": True},
-    {"fish_name": "(1kg) Squid", "tamil_name": "ஊருள் கன்னவாய்", "size": "1kg", "avra_price": 24, "selling_price": 28.80, "is_fish": True},
-    {"fish_name": "(1kg) White Prawn", "tamil_name": "வெள்ளை இறால்", "size": "1kg", "avra_price": 33, "selling_price": 39.60, "is_fish": True},
-    {"fish_name": "(1/2kg) White Prawn", "size": "0.5kg", "avra_price": 18, "selling_price": 21.60, "is_fish": True},
-    {"fish_name": "(1kg) Black Tiger Prawn", "tamil_name": "டைகர் இறால்", "size": "1kg", "avra_price": 36, "selling_price": 46.80, "is_fish": True},
-    {"fish_name": "(1/2kg) Black Tiger Prawn", "size": "0.5kg", "avra_price": 19, "selling_price": 24.70, "is_fish": True},
-    {"fish_name": "(1kg) Kid Goat Meat", "tamil_name": "இளம் ஆட்டு இறைச்சி", "size": "1kg", "avra_price": 18, "selling_price": 23.40, "is_fish": False},
-    {"fish_name": "(1kg) Goat Meat With Bone", "tamil_name": "ஆட்டு இறைச்சி", "size": "1kg", "avra_price": 15, "selling_price": 19.50, "is_fish": False},
-    {"fish_name": "(1kg) Goat Meat without Bone", "size": "1kg", "avra_price": 21, "selling_price": 27.30, "is_fish": False},
-    {"fish_name": "(1/2kg) Goat Meat without Bone", "size": "0.5kg", "avra_price": 12, "selling_price": 15.60, "is_fish": False},
-    {"fish_name": "(1kg) Goat Liver+Heart", "size": "1kg", "avra_price": 6, "selling_price": 8.40, "is_fish": False},
-    {"fish_name": "Lamb Diced on Bone", "size": "1kg", "avra_price": 16, "selling_price": None, "is_fish": False},
-]
+Then:
 
+`Add Recommended Quantity`
 
-MODULE 9: WEEKLY AVAILABILITY BOARD (Order Form Sheet)
+Use deterministic rules where appropriate.
 
-Page: This Week’s Orders
+Do not unnecessarily call an LLM for simple arithmetic.
 
-Show a table like the Excel Order Form:
+---
 
-	•	Rows = each fish type
-	•	Columns = kg ordered, packs, available qty
-	•	Team enters available qty per fish
-	•	Color: green if available ≥ ordered, red if shortfall
+# AI FEATURE 7 — ORDER AGAIN
 
-Auto-populate from all confirmed orders for the week.
+Show:
 
-MODULE 10: VENDOR REPORT
+## 🔄 Order Your Usual
 
-Page: Vendor Report
+Use customer order history.
 
-Generated every Friday for current week’s orders.
+Example:
 
-Report shows:
+Last order:
 
-TAREL VENDOR REPORT — Week of [date] to [date]
-Delivery Date: [Wednesday date]
+Salmon — 1kg
 
-FISH ORDERS:
-Fish Name              | Total Kg | Orders | Customers
-(1kg) King Fish        | 15.00    | 8      | [names]
-(1kg) Blue Swimmer Crab| 12.50    | 6      | [names]
-...
+Tiger Prawns — 500g
 
-MEAT ORDERS:
-Kid Goat Meat          | 22.00    | 12     | [names]
-...
+Blue Crab — 500g
 
-GRAND TOTAL: [X]kg fish + [Y]kg meat
+Button:
 
+`Reorder Everything`
 
-Button: “Download as PDF” — generates PDF
-Button: “Mark as Sent to Vendor” — updates status
+The system should add the current equivalent products to the cart using CURRENT prices.
 
-MODULE 11: DELIVERY ROUTES
+Do not reuse old prices.
 
-Page: Delivery Routes
+---
 
-Two tabs: Martin’s Route | Danny’s Route
+# PERSONALISATION ENGINE
 
-For each stop show:
+Each customer must have personalised recommendations.
 
-	•	Stop number (draggable to reorder)
-	•	Customer name + address + postcode
-	•	Items ordered (summary)
-	•	Invoice total
-	•	Payment status badge
+Do NOT rely on AI for basic recommendation calculations.
 
-Print-friendly view for driver to take on delivery day.
+Use customer history.
 
-Also show Inverness route separately if any Inverness orders that week.
+Track:
 
-MODULE 12: FINANCE & EXPENSES
+* purchase count
+* last purchased
+* favourite products
+* favourite categories
+* preferred cut
+* preferred weight
+* average order value
+* recent orders
+* frequently purchased products
 
-Page: Finance
+Calculate a recommendation score.
 
-Two sections:
+Example:
 
-Expenses tab:
+```text
+product_affinity_score =
+purchase_frequency
++ recency
++ category_preference
++ repeat_purchase_signal
+```
 
-	•	Add expense: date, description, amount, paid/unpaid
-	•	Categories: Petrol, Food, Fish Purchase, Meat Purchase, Car Rental, Other
-	•	List all expenses for selected week
+Then show:
 
-Income tab:
+### Picked for you
 
-	•	Auto-populated from verified payments
-	•	Show total income per week
+Different customers must see different recommendations.
 
-P&L Summary:
+---
 
-Week: [date range]
-Total Income:    £[X]
-Total Expenses:  £[Y]
-Fish Profit:     £[Z]
-─────────────────────
-Martin (50%):    £[A]
-Danny (40%):     £[B]
-Ministry (10%):  £[C]
+# PRODUCT DATA
 
+Create local development product data.
 
-Monthly summary view with all weeks.
+Include at least:
 
-MODULE 13: WHATSAPP INTEGRATION
+### Salmon Fillet
 
-Use Meta Cloud API (WhatsApp Business API).
+Category:
+Fish
 
-Config stored in environment variables:
+Price:
+£14/kg
 
-WHATSAPP_TOKEN=
-WHATSAPP_PHONE_ID=
-WHATSAPP_VERIFY_TOKEN=
+Weights:
+500g, 1kg
 
+Cuts:
+Fillet
 
-Outgoing messages (send these automatically):
+### King Fish
 
-	1.	Order received acknowledgement (sent immediately on order creation)
-	2.	Availability confirmed (sent after team marks available)
-	3.	Availability not available (sent after team marks not available)
-	4.	Invoice (PDF attachment via WhatsApp)
-	5.	Payment confirmation (after team verifies payment)
+Category:
+Fish
 
-Incoming webhook:
+Price:
+£16/kg
 
-	•	Receive WhatsApp messages at /webhook/whatsapp
-	•	Log incoming messages to a whatsapp_messages table
-	•	Show unread incoming messages in dashboard
+Weights:
+500g, 1kg, 1.5kg, 2kg
 
-If Meta API not configured, fall back to showing a “Send manually” button that copies the message text to clipboard.
+Cuts:
+Steak, Curry Cut
 
-MODULE 14: SETTINGS
+### Tiger Prawns
 
-Page: Settings (Admin only)
+Category:
+Prawns
 
-	•	Team members management (add/edit/remove users)
-	•	Bank details (editable — currently Daniel Maria Lazar / 80-48-88 / 13616562)
-	•	Delivery charge settings (freight rate, small order threshold, Inverness rate)
-	•	Profit split percentages (Martin/Danny/Ministry)
-	•	WhatsApp API credentials
-	•	Current delivery week management (open/close weeks)
+Price:
+£18/500g
 
-FILE STRUCTURE
+Weights:
+250g, 500g, 1kg
 
-tarel/
-├── app.py                  # Main Flask app, all routes
-├── config.py               # Config, env vars
-├── models.py               # SQLAlchemy models
-├── db.py                   # DB connection
-├── requirements.txt
-├── .env
-├── templates/
-│   ├── base.html           # Base layout with nav
-│   ├── login.html
-│   ├── dashboard.html
-│   ├── orders/
-│   │   ├── list.html
-│   │   ├── new.html
-│   │   ├── detail.html
-│   ├── customers/
-│   │   ├── list.html
-│   │   ├── profile.html
-│   ├── availability.html
-│   ├── invoice.html
-│   ├── vendor_report.html
-│   ├── delivery_routes.html
-│   ├── finance.html
-│   ├── fish_master.html
-│   ├── settings.html
-├── static/
-│   ├── css/
-│   │   └── style.css       # Mobile-first CSS
-│   ├── js/
-│   │   └── app.js
-├── services/
-│   ├── whatsapp.py         # Meta API integration
-│   ├── ai_parser.py        # Claude API order parsing
-│   ├── invoice_pdf.py      # WeasyPrint PDF generation
-│   ├── vendor_report.py    # Report generation
-└── seed_data.py            # Pre-load customers + fish prices
+### Blue Crab
 
+Category:
+Crab
 
-UI/UX REQUIREMENTS
+Price:
+£12/500g
 
-	•	Mobile-first design (team uses phones)
-	•	Color scheme: deep navy (#1a2744) + gold (#f0a500) — professional fish business feel
-	•	Large touch targets (minimum 44px buttons)
-	•	Status badges with clear colors (yellow=pending, blue=confirmed, green=paid, red=issue)
-	•	Bottom navigation bar on mobile: Orders | Customers | Availability | Finance
-	•	Toast notifications for all actions
-	•	Confirm dialogs before destructive actions
-	•	Loading states on all API calls
-	•	Offline-friendly: show cached data if connection drops
+Weights:
+500g, 1kg
 
-ENVIRONMENT VARIABLES NEEDED
+### Squid
 
-DATABASE_URL=postgresql://user:pass@localhost/tarel
-SECRET_KEY=your-secret-key
-ANTHROPIC_API_KEY=your-key
-WHATSAPP_TOKEN=
-WHATSAPP_PHONE_ID=
-WHATSAPP_VERIFY_TOKEN=
+Category:
+Squid
 
+Price:
+£6/500g
 
-SEED DATA
+Weights:
+250g, 500g, 1kg
 
-On first run (python seed_data.py), insert:
+Use existing Tarel images where available.
 
-	1.	Default admin user: username=admin, password=tarel2026
-	2.	All 40 fish/products from the price list above
-	3.	All 264 customers from the customer database (provide as CSV import)
-	4.	Current open delivery week
+If existing images don't match these exact products, use the closest available assets and make the data clearly replaceable later.
 
-WHAT TO BUILD FIRST (Priority Order)
+---
 
-	1.	Database setup + models
-	2.	Authentication (login/logout)
-	3.	Customer Book (pre-load data)
-	4.	Fish Master (pre-load prices)
-	5.	New Order form with AI parsing
-	6.	Order Pipeline view
-	7.	Availability Check module
-	8.	Invoice Generator + PDF
-	9.	Vendor Report
-	10.	Delivery Routes
-	11.	Finance/Expenses
-	12.	WhatsApp Integration
-	13.	Settings page
+# PRODUCT CARD
 
-Build this as a complete, production-ready Flask application. Every module should be fully functional. Use SQLAlchemy ORM. All forms should have validation. All tables should be searchable and filterable. The app should work perfectly on mobile browsers.
+Use the existing Tarel visual language.
 
-That’s your full prompt. Hand this to Claude and it will build the entire system module by module. If it hits context limits, tell it to continue from whichever module it stopped at — the prompt is structured so each module is independent.
+Each card should contain:
 
+* Image
+* Product name
+* Price
+* Weight selector
+* Cut/preparation selector where applicable
+* Quantity
+* Add button
 
-Build a Production-Grade SaaS for Automated Web Content Archiving & PDF Export
+Example:
 
-Build a full-stack SaaS called ArchiveFlow that allows authenticated users to automate the export of web content they are authorized to access (such as their own documentation, internal knowledge bases, public websites that permit crawling, or platforms that provide export rights).
+```text
+Salmon Fillet
 
-Goals
+[ IMAGE ]
 
-The application must be production-ready, horizontally scalable, and capable of processing very large jobs (10,000+ pages) while respecting robots.txt, rate limits, authentication, and site permissions.
+£14 / kg
 
-The system must not bypass authentication, DRM, paywalls, CAPTCHAs, or other access controls. It should only automate browsing and exporting on behalf of a logged-in user who has permission to access the content.
+Weight
+[ 1kg ▼ ]
 
-⸻
+Preparation
+[ Fillet ▼ ]
 
-Tech Stack
+[-] 1 [+]
 
+[ ADD ]
+```
+
+---
+
+# CATEGORIES
+
+Use:
+
+All
+
+Fish
+
+Prawns
+
+Crab
+
+Squid
+
+Meat
+
+Special Offers
+
+The category UI should match the existing Tarel style.
+
+---
+
+# NORMAL SEARCH
+
+Provide normal search:
+
+`Search fish, seafood or meat...`
+
+This should work WITHOUT AI.
+
+If the user types a simple product name:
+
+`Salmon`
+
+normal search should handle it.
+
+AI is only needed for natural-language intent.
+
+---
+
+# CART
+
+Create a real local development cart.
+
+Cart must support:
+
+* Add
+* Remove
+* Increase quantity
+* Decrease quantity
+* Change weight
+* Change preparation
+* Clear item
+
+Sticky bottom cart on mobile:
+
+`🛒 4 Items   £50.50   VIEW CART`
+
+---
+
+# PRICING ENGINE
+
+Create a central pricing calculation function.
+
+Do NOT calculate totals independently in multiple components.
+
+Example:
+
+```text
+subtotal
+- discount
++ freight surcharge
++ delivery charge
+= total
+```
+
+Use current database/product values.
+
+---
+
+# DISCOUNT
+
+Support local development discount:
+
+Example:
+
+`FRESH10`
+
+10% discount.
+
+Make the discount system replaceable with the real Tarel discount engine later.
+
+---
+
+# FREIGHT SURCHARGE
+
+Use the Tarel business rule:
+
+If the applicable order value requires the surcharge:
+
+`£1.50`
+
+Show:
+
+Freight Surcharge: £1.50
+
+If not applicable:
+
+Freight Surcharge: £0.00
+
+The backend/pricing engine is the source of truth.
+
+---
+
+# DELIVERY
+
+Allow:
+
+### Home Delivery
+
+Show saved address.
+
+### Collect From Us
+
+No delivery charge.
+
+Allow customer to change address.
+
+---
+
+# DELIVERY DATE
+
+Create development delivery dates.
+
+Example:
+
+Friday
+
+Saturday
+
+Sunday
+
+Only show available dates.
+
+Make the data structure ready for future delivery-slot rules.
+
+---
+
+# ORDER NOTES
+
+Allow:
+
+`Any special preparation instructions?`
+
+Example:
+
+“Please cut into curry pieces.”
+
+---
+
+# FINAL CHECKOUT
+
+Show:
+
+Customer:
+
+Jebastin P
+
+Customer ID:
+
+TAR1234
+
+Phone:
+
++44 XXXXX XXXXX
+
+Delivery:
+
+Home Delivery
+
+Address:
+
+Saved address
+
+Delivery Date:
+
+Friday
+
+Items:
+
+All cart items
+
+Pricing:
+
+Subtotal
+
+Discount
+
+Freight Surcharge
+
+Delivery Charge
+
+TOTAL
+
+Button:
+
+## PLACE ORDER
+
+---
+
+# ORDER CREATION
+
+When customer presses PLACE ORDER:
+
+Create ONE order record.
+
+Example:
+
+```text
+Order ID: TR-10482
+Customer ID: TAR1234
+Customer Name: Jebastin P
+Source: WHATSAPP
+Status: PENDING_CONFIRMATION
+Payment Status: PENDING
+```
+
+Create associated order items.
+
+Do NOT create separate customer and admin orders.
+
+The customer view and admin view must reference the SAME order.
+
+---
+
+# CUSTOMER SUCCESS SCREEN
+
+After placing:
+
+## 🎉 Order Received!
+
+Thank you, Jebastin.
+
+Your order has been received.
+
+Order ID:
+
+**TR-10482**
+
+Status:
+
+🟡 Pending Confirmation
+
+Message:
+
+“Our team will review your order and confirm it shortly.”
+
+Button:
+
+`View My Order`
+
+Button:
+
+`Chat with Tarel on WhatsApp`
+
+The WhatsApp button can use the existing Tarel WhatsApp number.
+
+---
+
+# CUSTOMER ORDER TRACKING
+
+Create:
+
+`/order/TR-10482`
+
+Show:
+
+### Order #TR-10482
+
+✓ Order Received
+
+🟡 Pending Confirmation
+
+○ Confirmed
+
+○ Preparing
+
+○ Ready
+
+○ Out for Delivery
+
+○ Delivered
+
+The status should come from the same order record.
+
+---
+
+# ADMIN SIDE
+
+Create an admin development page.
+
+Example:
+
+`/admin/received-orders`
+
+Use the SAME Tarel design language.
+
+Do not create a generic dashboard.
+
+---
+
+# RECEIVED ORDERS
+
+Add a menu item:
+
+**📨 Received Orders**
+
+Show:
+
+* Order ID
+* Customer
+* Customer ID
+* Phone
+* Items
+* Total
+* Order date
+* Source
+* Status
+* Action
+
+Example:
+
+```text
+TR-10482
+Jebastin P
+TAR1234
+4 Items
+£50.50
+WHATSAPP
+Pending Confirmation
+[Review]
+```
+
+---
+
+# ORDER REVIEW
+
+When admin clicks Review:
+
+Show:
+
+Customer details
+
+Order items
+
+Product images
+
+Quantities
+
+Weights
+
+Cuts
+
+Notes
+
+Delivery method
+
+Address
+
+Delivery date
+
+Subtotal
+
+Discount
+
+Freight
+
+Delivery charge
+
+Total
+
+Buttons:
+
+## Confirm Order
+
+## Reject Order
+
+---
+
+# CONFIRMATION LOGIC
+
+When admin clicks:
+
+**Confirm Order**
+
+Do NOT create another order.
+
+Change:
+
+```text
+PENDING_CONFIRMATION
+```
+
+to:
+
+```text
+CONFIRMED
+```
+
+Then the order becomes visible in:
+
+**Order Management**
+
+---
+
+# REJECTION LOGIC
+
+If admin rejects:
+
+Change status:
+
+```text
+REJECTED
+```
+
+Ask for optional rejection reason.
+
+Example:
+
+“Product unavailable.”
+
+Store the rejection reason with the same order.
+
+---
+
+# ORDER MANAGEMENT
+
+Create/extend:
+
+`/admin/orders`
+
+Show confirmed orders.
+
+Statuses:
+
+* Confirmed
+* Preparing
+* Ready
+* Out for Delivery
+* Delivered
+* Cancelled
+
+Allow admin to update status.
+
+---
+
+# ORDER STATUS FLOW
+
+```text
+Pending Confirmation
+        ↓
+Confirmed
+        ↓
+Preparing
+        ↓
+Ready
+        ↓
+Out for Delivery
+        ↓
+Delivered
+```
+
+---
+
+# DATA MODEL
+
+For local development, create a simple data layer.
+
+Prefer a lightweight local backend if necessary.
+
+Use a structure that can later be replaced with the real Tarel FastAPI/PostgreSQL backend.
+
+Suggested entities:
+
+```text
+customers
+products
+product_variants
+orders
+order_items
+delivery_addresses
+customer_preferences
+customer_product_affinity
+order_history
+quick_order_campaigns
+quick_order_campaign_products
+```
+
+---
+
+# QUICK ORDER CAMPAIGNS
+
+Support campaign URLs.
+
+Example:
+
+`/order/fresh-catch`
+
+Campaign:
+
+Fresh Catch
+
+Products:
+
+Salmon
+
+King Fish
+
+Tiger Prawns
+
+Blue Crab
+
+Squid
+
+Future campaigns:
+
+`/order/fresh-friday`
+
+`/order/weekend-special`
+
+`/order/seafood-box`
+
+The Mini Order Page should use the campaign to determine which products are displayed.
+
+---
+
+# AI ARCHITECTURE
+
+Do NOT create one giant AI agent.
+
+Use focused AI capabilities/agents.
+
+## Agent 1 — Product Finder Agent
+
+Input:
+
+Natural-language request.
+
+Output:
+
+Structured product filters.
+
+Example:
+
+```json
+{
+  "category": "fish",
+  "preparation": "boneless",
+  "cooking_method": "frying",
+  "max_price": 15
+}
+```
+
+---
+
+## Agent 2 — Meal Recommendation Agent
+
+Input:
+
+Dish + people + preferences.
+
+Output:
+
+Recommended product IDs and quantities.
+
+---
+
+## Agent 3 — Order Builder Agent
+
+Input:
+
+People + categories + budget.
+
+Output:
+
+Proposed product IDs and quantities.
+
+---
+
+## Agent 4 — Customer Recommendation Engine
+
+Primarily rules/data driven.
+
+Uses:
+
+* order history
+* frequency
+* recency
+* categories
+* product affinity
+* current availability
+
+Use AI only when natural-language reasoning adds value.
+
+---
+
+# AI SAFETY / DATA RULE
+
+AI must never directly write arbitrary products/prices into the order.
+
+AI returns product IDs.
+
+Backend validates:
+
+```text
+product exists
+product is active
+product is available
+weight is valid
+cut is valid
+current price is fetched
+stock is sufficient
+```
+
+Then backend adds to cart.
+
+---
+
+# AI UI
+
+The AI should be integrated into the Mini Order Page.
+
+Do NOT make it look like ChatGPT.
+
+Use Tarel branding.
+
+Keep it lightweight.
+
+Example:
+
+```text
+✨ Ask Tarel
+
+What are you looking for today?
+
+[ Fish for 5 people under £30 ]
+
+[🐟 Find Fish]
+[🍛 What should I cook?]
+[✨ Build My Order]
+[💰 Under £30]
+[🔄 Order Again]
+```
+
+AI responses should be concise and action-oriented.
+
+Always provide product/action buttons where appropriate.
+
+---
+
+# RESPONSIVE DESIGN
+
+The customer page is primarily mobile-first because the link will be opened from WhatsApp.
+
+Must work properly on:
+
+* iPhone
+* Android
+* tablet
+* desktop
+
+On mobile:
+
+* Sticky cart
+* Large touch targets
+* Simple cards
+* Minimal typing
+* Fast loading
+* Easy scrolling
+
+Do not overcrowd the screen.
+
+---
+
+# VISUAL DIRECTION
+
+Use the existing Tarel design.
+
+Do NOT copy the generated mockup literally.
+
+Use it only as UX inspiration.
+
+The actual implementation must match the existing Tarel website.
+
+Use:
+
+* Existing logo
+* Existing colours
+* Existing fonts
+* Existing border radius
+* Existing buttons
+* Existing shadows
+* Existing spacing
+* Existing imagery
+* Existing responsive behaviour
+
+The customer should feel:
+
+“This is Tarel.”
+
+Not:
+
+“This is a separate ecommerce website.”
+
+---
+
+# LOCAL DEVELOPMENT
+
+Everything must run locally.
+
+Create a clear development command.
+
+For example:
+
+```bash
+./run
+```
+
+or the appropriate command for the chosen implementation.
+
+If adding a backend:
+
+Run frontend and backend locally.
+
+Example:
+
+```text
 Frontend:
-
-* Next.js 15
-* TypeScript
-* TailwindCSS
-* shadcn/ui
-* React Query
+http://localhost:3000
 
 Backend:
+http://localhost:8000
+```
 
-* FastAPI
-* PostgreSQL
-* Redis
-* Celery (or Dramatiq)
-* Playwright
-* Chromium
-* Docker
+Do not require production credentials.
 
-Infrastructure:
+Use mock/local data.
 
-* Nginx
-* Docker Compose
-* Kubernetes-ready
-* S3-compatible storage
-* Cloudflare support
+---
 
-Authentication:
+# DEVELOPMENT MODE
 
-* JWT
-* Google OAuth
-* GitHub OAuth
+Create clearly separated development/mock data.
 
-Payments:
+The app should be usable immediately after starting locally.
 
-* Stripe subscriptions
+No external database should be required for the initial demo.
 
-Monitoring:
+If a database is introduced, provide an easy local setup.
 
-* Prometheus
-* Grafana
-* Sentry
+---
 
-⸻
+# COMPLETE TEST FLOW
 
-Features
+The final implementation MUST allow me to test this exact flow locally:
 
-Authentication
+## CUSTOMER
 
-* Email login
-* OAuth
-* MFA
-* Session management
-* Organization support
+1. Open `/order/fresh-catch`
+2. Enter `TAR1234`
+3. See:
 
-⸻
+“Welcome back, Jebastin”
 
-Dashboard
+4. See personalised recommendations
+5. Search normally for Salmon
+6. Add Salmon
+7. Change weight
+8. Change preparation
+9. Add another product
+10. Ask:
 
-Show:
+“I need fish for 5 people for curry”
 
-* Jobs
-* Running jobs
-* Completed jobs
-* Failed jobs
-* Queue
-* Storage used
-* Subscription
-* Credits
+11. Receive AI recommendation
+12. Add recommendation to cart
+13. Click Build My Order
+14. Build a budget order
+15. Test portion calculator
+16. Test Order Again
+17. Open cart
+18. Apply discount
+19. Check freight surcharge
+20. Select delivery
+21. Select date
+22. Add notes
+23. Review order
+24. Place order
+25. Receive Order ID
+26. Open customer order tracking
 
-⸻
+## ADMIN
 
-New Archive Job
+27. Open `/admin/received-orders`
+28. See the SAME Order ID
+29. Review customer
+30. Review items
+31. Review price
+32. Review delivery
+33. Review notes
+34. Click Confirm Order
+35. Verify status changes to Confirmed
+36. Open Order Management
+37. Verify SAME Order ID is there
+38. Change status to Preparing
+39. Change status to Ready
+40. Change status to Out for Delivery
+41. Change status to Delivered
+42. Return to customer order page
+43. Verify customer sees the updated status
 
-User enters:
+---
 
-* Starting URL
-* Crawl depth
-* Maximum pages
-* Domain restrictions
-* Include patterns
-* Exclude patterns
-* Delay between requests
-* Concurrent workers
-* Output format (PDF/HTML/Markdown)
+# DEMO DATA
 
-⸻
+Create enough sample products and customers to make the UI feel realistic.
 
-Crawl Engine
+At minimum:
 
-Use Playwright.
+5–10 seafood products.
 
-Support:
+3 customers.
 
-* SPA websites
-* Infinite scroll
-* Lazy loading
-* JavaScript rendering
-* Dynamic navigation
+5–10 sample historical orders.
 
-⸻
+Different preferences for each customer.
 
-Authentication
+Use realistic GBP prices.
 
-Allow user-provided login automation:
+---
 
-* Login URL
-* Username/password
-* Cookie import
-* Session persistence
+# ERROR HANDLING
 
-Never bypass authentication.
+Handle:
 
-⸻
+* Product unavailable
+* Invalid customer ID
+* Empty cart
+* Invalid quantity
+* Invalid weight
+* Invalid cut
+* Delivery date unavailable
+* Product removed while ordering
+* AI recommendation unavailable
+* Backend error
 
-Page Discovery
+Never allow checkout with invalid products.
 
-Support:
+---
 
-* Internal links
-* Sitemap.xml
-* Navigation menus
-* Search pages
-* Pagination
+# PERFORMANCE
 
-Avoid duplicates.
+Do not make unnecessary AI calls.
 
-⸻
+Normal shopping must remain instant.
 
-Queue System
+Cache or reuse:
 
-Redis queue.
+* Product list
+* Customer profile
+* Recommendation data
 
-Support:
+AI calls should happen only when the user actively requests an AI feature.
 
-* Millions of URLs
-* Retry
-* Priority
-* Pause
-* Resume
-* Cancel
+---
 
-⸻
+# ACCESSIBILITY
 
-PDF Engine
+Use:
 
-Each page should be rendered in Chromium.
+* Semantic HTML
+* Proper labels
+* Keyboard navigation
+* Accessible buttons
+* Good contrast
+* Clear focus states
+* Alt text for product images
 
-Support:
+---
 
-* Print backgrounds
-* Headers
-* Footers
-* Table of contents
-* Page numbers
+# SECURITY
 
-⸻
+For development:
 
-Merge PDFs
+* Do not expose API keys in frontend code.
+* Keep AI keys server-side if an AI API is used.
+* Do not trust frontend totals.
+* Validate all order data server-side.
+* Do not allow arbitrary product IDs/prices from the browser to become final order values.
 
-Automatically combine into volumes.
+---
 
-Examples:
+# IMPORTANT: AI API
 
-Volume 1
-Pages 1–1000
+If no AI API key is available during development, DO NOT block the project.
 
-Volume 2
-1001–2000
+Create a local/mock AI service that demonstrates the complete AI behaviour.
 
-etc.
+For example:
 
-⸻
+Input:
 
-Large Scale
+“I need boneless fish for frying.”
 
-Support:
+Mock AI returns:
 
-* 10,000+
-* 50,000+
-* 100,000+
+Salmon Fillet
 
-Use streaming.
+King Fish
 
-Never load everything into memory.
+The architecture must make the AI provider replaceable later.
 
-⸻
+Do not hard-code the AI provider into the UI.
 
-Storage
+Create a service abstraction such as:
 
-Store:
+```text
+aiService
+```
 
-Original HTML
+with methods:
 
-PDF
+```text
+findProducts()
+recommendMeal()
+buildOrder()
+calculatePortion()
+recommendForCustomer()
+```
 
-Screenshots
+---
 
-Metadata
+# CODE QUALITY
 
-Logs
+Keep the code modular.
 
-Downloads
+Do not put the entire Mini Order system into one giant JavaScript file.
 
-⸻
+Separate:
 
-Progress
+* Product data
+* Customer data
+* Cart
+* Pricing
+* Orders
+* Recommendations
+* AI services
+* UI components
+* Admin
+* Mock API/data
 
-Live websocket updates.
+Use clear naming.
 
-Show:
+Add comments where business logic is important.
 
-URLs processed
+---
 
-Remaining
+# DO NOT MODIFY EXISTING WEBSITE UNNECESSARILY
 
-ETA
+The existing Tarel homepage must continue working.
 
-CPU
+Do not remove:
 
-RAM
+* Existing sections
+* Existing WhatsApp buttons
+* Existing vendor flow
+* Existing contact flow
+* Existing assets
+* Existing responsive design
 
-Workers
+Only modify the existing WhatsApp order CTA where necessary to introduce the Mini Order Page.
 
-Queue
+Keep a support WhatsApp option.
 
-⸻
+---
 
-Scheduling
+# FINAL ACCEPTANCE CRITERIA
 
-Support:
+The project is complete only when:
 
-Daily
+1. Existing Tarel website still works.
+2. Mini Order Page works locally.
+3. Customer identification works.
+4. Customer name + initial works.
+5. Customer ID works.
+6. Product browsing works.
+7. Normal search works.
+8. AI Fish Finder works.
+9. Natural-language search works.
+10. What Should I Cook works.
+11. Build My Order works.
+12. Budget ordering works.
+13. Portion calculator works.
+14. Order Again works.
+15. Personalised recommendations differ by customer.
+16. Products can be added from AI directly to cart.
+17. Cart works.
+18. Pricing works.
+19. Discount works.
+20. Freight surcharge works.
+21. Delivery works.
+22. Collection works.
+23. Delivery date works.
+24. Notes work.
+25. Order can be submitted.
+26. One order record is created.
+27. Order appears in Received Orders.
+28. Admin can review.
+29. Admin can confirm.
+30. Admin can reject.
+31. Confirmed order appears in Order Management.
+32. Same Order ID is maintained.
+33. Order status can progress to Delivered.
+34. Customer can see updated status.
+35. No Meta API is required.
+36. No deployment occurs.
+37. No GitHub push occurs.
+38. No production data is modified.
+39. No API keys are exposed.
+40. The entire flow can be demonstrated locally.
 
-Weekly
+---
 
-Monthly
+# FINAL INSTRUCTION
 
-Webhook trigger
+Before declaring the work complete:
 
-API trigger
+1. Run the project locally.
+2. Test the customer flow from beginning to end.
+3. Test the admin flow from beginning to end.
+4. Test AI/mock-AI features.
+5. Test personalised recommendations using at least two different customers.
+6. Test cart calculations.
+7. Test discount.
+8. Test freight surcharge.
+9. Test delivery and collection.
+10. Test order confirmation.
+11. Test order rejection.
+12. Test order status progression.
+13. Test mobile responsive layout.
+14. Check browser console for errors.
+15. Fix all obvious errors.
+16. Do NOT deploy.
+17. Do NOT push.
+18. Do NOT commit.
+19. Leave everything in local development state.
 
-⸻
+At the end, provide:
 
-API
+* What was built
+* Files changed/created
+* How to run locally
+* Local URLs
+* Demo customer IDs
+* Demo order flow
+* AI features implemented
+* Any remaining limitations
 
-REST API
+The priority is:
 
-GraphQL optional
+**Existing Tarel visual identity + excellent mobile ordering UX + reliable normal commerce logic + useful AI assistance + personalised recommendations + complete local end-to-end testing.**
 
-Webhooks
-
-⸻
-
-Permissions
-
-Owner
-
-Admin
-
-Member
-
-Viewer
-
-⸻
-
-Export
-
-ZIP
-
-PDF
-
-Markdown
-
-HTML
-
-JSON
-
-CSV
-
-⸻
-
-Search
-
-Full-text search.
-
-⸻
-
-Retry
-
-Retry failed pages automatically.
-
-⸻
-
-Duplicate Detection
-
-Hash URLs.
-
-Hash HTML.
-
-Avoid duplicate exports.
-
-⸻
-
-Logging
-
-Detailed logs.
-
-Per-page logs.
-
-Worker logs.
-
-Network logs.
-
-⸻
-
-Analytics
-
-Pages exported
-
-Time saved
-
-Bandwidth
-
-Storage
-
-Daily usage
-
-⸻
-
-Admin Panel
-
-Manage:
-
-Users
-
-Jobs
-
-Workers
-
-Billing
-
-Storage
-
-System health
-
-⸻
-
-Security
-
-Validate URLs.
-
-Prevent SSRF.
-
-Restrict local network access.
-
-Rate limiting.
-
-Input validation.
-
-Audit logging.
-
-Encrypted secrets.
-
-⸻
-
-Deployment
-
-Docker Compose.
-
-Kubernetes manifests.
-
-GitHub Actions CI/CD.
-
-Automatic migrations.
-
-⸻
-
-Deliverables
-
-Generate:
-
-* Complete frontend
-* Complete backend
-* Database schema
-* Docker setup
-* API documentation
-* Tests
-* Production deployment guide
-* Monitoring configuration
-* Sample data
-* OpenAPI documentation
-
-The resulting application should be maintainable, scalable, and suitable for organizations archiving content they are authorized to access.
